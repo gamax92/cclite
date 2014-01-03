@@ -1,4 +1,3 @@
-
 COLOUR_RGB = {
 	WHITE = {240, 240, 240},
 	ORANGE = {242, 178, 51},
@@ -116,7 +115,7 @@ function Screen:draw()
 			local sByte = string.byte(text)
 			if sByte == 9 then
 				text = " "
-			elseif sByte < 32 or sByte > 126 or sByte == 96 then
+			elseif (sByte < 32 or sByte > 126 or sByte == 96) and sByte ~= 166 then
 				text = "?"
 			end
 			if text ~= " " then

@@ -227,8 +227,8 @@ end
 
 api.term = {}
 function api.term.clear()
-	for y = 1, Screen.height do
-		for x = 1, Screen.width do
+	for y = 1, _conf.terminal_height do
+		for x = 1, _conf.terminal_width do
 			Screen.textB[y][x] = " "
 			Screen.backgroundColourB[y][x] = api.comp.bg
 			Screen.textColourB[y][x] = 1
@@ -237,10 +237,10 @@ function api.term.clear()
 	Screen.dirty = true
 end
 function api.term.clearLine()
-	if api.comp.cursorY > Screen.height or api.comp.cursorY < 1 then
+	if api.comp.cursorY > _conf.terminal_height or api.comp.cursorY < 1 then
 		return
 	end
-	for x = 1, Screen.width do
+	for x = 1, _conf.terminal_width do
 		Screen.textB[api.comp.cursorY][x] = " "
 		Screen.backgroundColourB[api.comp.cursorY][x] = api.comp.bg
 		Screen.textColourB[api.comp.cursorY][x] = 1
@@ -248,7 +248,7 @@ function api.term.clearLine()
 	Screen.dirty = true
 end
 function api.term.getSize()
-	return Screen.width, Screen.height
+	return _conf.terminal_width, _conf.terminal_height
 end
 function api.term.getCursorPos()
 	return api.comp.cursorX, api.comp.cursorY
@@ -261,7 +261,7 @@ function api.term.setCursorPos(x, y)
 end
 function api.term.write(text)
 	text = serialize(text)
-	if api.comp.cursorY > Screen.height or api.comp.cursorY < 1 or api.comp.cursorX > Screen.width then
+	if api.comp.cursorY > _conf.terminal_height or api.comp.cursorY < 1 or api.comp.cursorX > _conf.terminal_width then
 		api.comp.cursorX = api.comp.cursorX + #text
 		return
 	end
@@ -269,7 +269,7 @@ function api.term.write(text)
 	for i = 1, #text do
 		local char = text:sub(i, i)
 		if api.comp.cursorX + i - 1 >= 1 then
-			if api.comp.cursorX + i - 1 > Screen.width then
+			if api.comp.cursorX + i - 1 > _conf.terminal_width then
 				break
 			end
 			Screen.textB[api.comp.cursorY][api.comp.cursorX + i - 1] = char
@@ -310,27 +310,27 @@ function api.term.scroll(n)
 	local textBuffer = {}
 	local backgroundColourBuffer = {}
 	local textColourBuffer = {}
-	for y = 1, Screen.height do
-		if y - n > 0 and y - n <= Screen.height then
+	for y = 1, _conf.terminal_height do
+		if y - n > 0 and y - n <= _conf.terminal_height then
 			textBuffer[y - n] = {}
 			backgroundColourBuffer[y - n] = {}
 			textColourBuffer[y - n] = {}
-			for x = 1, Screen.width do
+			for x = 1, _conf.terminal_width do
 				textBuffer[y - n][x] = Screen.textB[y][x]
 				backgroundColourBuffer[y - n][x] = Screen.backgroundColourB[y][x]
 				textColourBuffer[y - n][x] = Screen.textColourB[y][x]
 			end
 		end
 	end
-	for y = 1, Screen.height do
+	for y = 1, _conf.terminal_height do
 		if textBuffer[y] ~= nil then
-			for x = 1, Screen.width do
+			for x = 1, _conf.terminal_width do
 				Screen.textB[y][x] = textBuffer[y][x]
 				Screen.backgroundColourB[y][x] = backgroundColourBuffer[y][x]
 				Screen.textColourB[y][x] = textColourBuffer[y][x]
 			end
 		else
-			for x = 1, Screen.width do
+			for x = 1, _conf.terminal_width do
 				Screen.textB[y][x] = " "
 				Screen.backgroundColourB[y][x] = api.comp.bg
 				Screen.textColourB[y][x] = 1 -- Don't need to bother setting text color

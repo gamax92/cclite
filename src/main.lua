@@ -129,8 +129,8 @@ Emulator = {
 
 function Emulator:start()
 	self.reboot = false
-	for y = 1, Screen.height do
-		for x = 1, Screen.width do
+	for y = 1, _conf.terminal_height do
+		for x = 1, _conf.terminal_width do
 			Screen.textB[y][x] = " "
 			Screen.backgroundColourB[y][x] = 32768
 		end
@@ -223,7 +223,7 @@ function love.mousereleased(x, y, _button)
 	end
 end
 
-function  love.mousepressed(x, y, _button)
+function  love.mousepressed(x, y, button)
 
 	if x > 0 and x < Screen.sWidth
 		and y > 0 and y < Screen.sHeight then -- Within screen bounds.
@@ -231,18 +231,19 @@ function  love.mousepressed(x, y, _button)
 		local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
 		local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
 
-		if not Emulator.mousePressed and _button == "r" or _button == "l" then
+		if button == "l" or button == "m" or button == "r" then
 			Emulator.mouse.isPressed = true
 			Emulator.mouse.lastTermX = termMouseX
 			Emulator.mouse.lastTermY = termMouseY
-			table.insert(Emulator.eventQueue, {"mouse_click", _button == "r" and 2 or 1, termMouseX, termMouseY})
-
-		elseif _button == "wu" then -- Scroll up
+			if button == "l" then button = 1
+			elseif button == "m" then button = 3
+			elseif button == "r" then button = 2
+			end
+			table.insert(Emulator.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
+		elseif button == "wu" then -- Scroll up
 			table.insert(Emulator.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
-
-		elseif _button == "wd" then -- Scroll down
+		elseif button == "wd" then -- Scroll down
 			table.insert(Emulator.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
-
 		end
 	end
 end

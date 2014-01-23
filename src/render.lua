@@ -38,8 +38,6 @@ COLOUR_CODE = {
 }
 
 Screen = {
-	width = _conf.terminal_width,
-	height = _conf.terminal_height,
 	sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
 	sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
 	textB = {},
@@ -55,11 +53,11 @@ Screen = {
 	messages = {},
 	setup = false,
 }
-for y = 1, Screen.height do
+for y = 1, _conf.terminal_height do
 	Screen.textB[y] = {}
 	Screen.backgroundColourB[y] = {}
 	Screen.textColourB[y] = {}
-	for x = 1, Screen.width do
+	for x = 1, _conf.terminal_width do
 		Screen.textB[y][x] = " "
 		Screen.backgroundColourB[y][x] = 32768
 		Screen.textColourB[y][x] = 1
@@ -93,8 +91,8 @@ local ldrawRect = love.graphics.rectangle
 local ldrawLine = love.graphics.line
 local lprint = love.graphics.print
 local tOffset = Screen.tOffset
-local decWidth = Screen.width - 1
-local decHeight = Screen.height - 1
+local decWidth = _conf.terminal_width - 1
+local decHeight = _conf.terminal_height - 1
 
 local lastColor = COLOUR_FULL_WHITE
 local function setColor(c)
@@ -143,8 +141,8 @@ function Screen:draw()
 	end
 
 	-- Render the Text
-	for y = 0, self.height - 1 do
-		for x = 0, self.width - 1 do
+	for y = 0, decHeight do
+		for x = 0, decWidth do
 			local text = self.textB[y + 1][x + 1]
 			if text ~= " " and text ~= "\t" then
 				local sByte = string.byte(text)

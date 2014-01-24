@@ -134,15 +134,17 @@ Emulator = {
 function Emulator:start()
 	self.reboot = false
 	for y = 1, _conf.terminal_height do
+		local screen_textB = Screen.textB[y]
+		local screen_backgroundColourB = Screen.backgroundColourB[y]
 		for x = 1, _conf.terminal_width do
-			Screen.textB[y][x] = " "
-			Screen.backgroundColourB[y][x] = 32768
+			screen_textB[x] = " "
+			screen_backgroundColourB[x] = 32768
 		end
 	end
 	Screen.dirty = true
 	api.init()
 
-	local fn, err = api.loadstring(love.filesystem.read("/lua/bios.lua"),"bios")
+	local fn, err = loadstring(love.filesystem.read("/lua/bios.lua"),"@bios")
 
 	if not fn then
 		print(err)
@@ -337,7 +339,9 @@ function love.update(dt)
 		if now - Screen.lastCursor >= 0.25 then
 			Screen.showCursor = not Screen.showCursor
 			Screen.lastCursor = now
-			Screen.dirty = true
+			if api.comp.cursorY >= 1 and api.comp.cursorY <= _conf.terminal_height and api.comp.cursorX >= 1 and api.comp.cursorX <= _conf.terminal_width then
+				Screen.dirty = true
+			end
 		end
 	end
 	if _conf.cclite_showFPS then

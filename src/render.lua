@@ -88,7 +88,6 @@ local COLOUR_HALF_BLACK = {0,0,0,72}
 -- Local functions are faster than global
 local lsetCol = love.graphics.setColor
 local ldrawRect = love.graphics.rectangle
-local ldrawLine = love.graphics.line
 local lprint = love.graphics.print
 local tOffset = Screen.tOffset
 local decWidth = _conf.terminal_width - 1
@@ -126,10 +125,7 @@ function Screen:draw()
 		return
 	end
 
-	-- TODO Better damn rendering!
-	-- Should only update sections that changed.
-
-	-- Render the Background Color
+	-- Render background color
 	setColor(COLOUR_CODE[self.backgroundColourB[1][1]])
 	for y = 0, decHeight do
 		for x = 0, decWidth do
@@ -140,23 +136,24 @@ function Screen:draw()
 		end
 	end
 
-	-- Render the Text
+	-- Render text
 	for y = 0, decHeight do
+		local self_textB = self.textB[y + 1]
+		local self_textColourB = self.textColourB[y + 1]
 		for x = 0, decWidth do
-			local text = self.textB[y + 1][x + 1]
+			local text = self_textB[x + 1]
 			if text ~= " " and text ~= "\t" then
 				local sByte = string.byte(text)
-				if sByte == 9 then
-					text = " "
-				elseif sByte < 32 or sByte > 126 or sByte == 96 then
+				if sByte < 32 or sByte > 126 or sByte == 96 then
 					text = "?"
 				end
-				setColor(COLOUR_CODE[self.textColourB[y + 1][x + 1]])
+				setColor(COLOUR_CODE[self_textColourB[x + 1]])
 				lprint(text, x * self.pixelWidth + tOffset[text] + _conf.terminal_guiScale, y * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 			end
 		end
 	end
 
+	-- Render cursor
 	if api.comp.blink and self.showCursor then
 		setColor(COLOUR_CODE[api.comp.fg])
 		lprint("_", (api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)

@@ -15,7 +15,7 @@ end
 -- HELPER CLASSES/HANDLES
 -- TODO Make more efficient, use love.filesystem.lines
 local HTTPHandle
-if _conf.enableAPI_http == true then
+if _conf.enableAPI_http then
 	function HTTPHandle(contents, status)
 		local closed = false
 		local lineIndex = 1
@@ -167,7 +167,7 @@ local function FileWriteHandle(path, append)
 		end,
 		writeLine = function(data)
 			if closed then error("Stream closed",2) end
-			File:write(serialize(data) .. (_conf.useCRLF == true and "\r\n" or "\n"))
+			File:write(serialize(data) .. (_conf.useCRLF and "\r\n" or "\n"))
 		end,
 		write = function(data)
 			if closed then error("Stream closed",2) end
@@ -356,7 +356,7 @@ end
 
 api.cclite = {}
 api.cclite.peripherals = {}
-if _conf.enableAPI_cclite == true then
+if _conf.enableAPI_cclite then
 	function api.cclite.peripheralAttach(sSide, sType)
 		if type(sSide) ~= "string" or type(sType) ~= "string" then
 			error("Expected string, string",2)
@@ -388,9 +388,13 @@ if _conf.enableAPI_cclite == true then
 		if not api.cclite.peripherals[sSide] then error("No peripheral attached",2) end
 		return api.cclite.peripherals[sSide].ccliteCall(sMethod, ...)
 	end
+	function api.cclite.message(sMessage)
+		if type(sMessage) ~= "string" then error("Expected string",2) end
+		Screen:message(sMessage)
+	end
 end
 
-if _conf.enableAPI_http == true then
+if _conf.enableAPI_http then
 	api.http = {}
 	function api.http.request(sUrl, sParams)
 		if type(sUrl) ~= "string" then
@@ -1034,17 +1038,18 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			bnot = api.bit.bnot,
 		},
 	}
-	if _conf.enableAPI_http == true then
+	if _conf.enableAPI_http then
 		api.env.http = {
 			request = api.http.request,
 		}
 	end
-	if _conf.enableAPI_cclite == true then
+	if _conf.enableAPI_cclite then
 		api.env.cclite = {
 			peripheralAttach = api.cclite.peripheralAttach,
 			peripheralDetach = api.cclite.peripheralDetach,
 			call = api.cclite.call,
 			log = print,
+			message = api.cclite.message,
 			traceback = debug.traceback,
 		}
 	end

@@ -6,11 +6,9 @@ Description:
 
 This is a ComputerCraft Emulator written in Love2D. It is not complete, and is still a work in progress.
 
-I will not be handing out builds for this emulator. To use it, [download Love2D 0.9.0](http://love2d.org/) and use the build_src.bat to produce a .love file.
+If you have installed Love2D you can just double click on the supplied cclite-latest-beta.love file to run it.
 
-If you have installed Love2D you can just double click on the .love file to run it.
-
-The [forum topic](http://www.computercraft.info/forums2/index.php?/topic/13445-lightweight-cc-emulator-download-now/) for CCLite is from the original author, Sorroko, and features in mine are not guarenteed to be in his, vice versa.
+Visit the [forum topic](http://www.computercraft.info/forums2/index.php?/topic/16823-cclite-computercraft-emulator/) for CCLite.
 
 HTTPS Support:
 ----------------

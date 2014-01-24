@@ -426,7 +426,7 @@ function love.run()
 			Screen:draw()
 		end
 
-		if _conf.lockfps > 0 and Emulator.running then 
+		if _conf.lockfps > 0 then 
 			local cur_time = love.timer.getTime()
 			if next_time < cur_time then
 				next_time = cur_time

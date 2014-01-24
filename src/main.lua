@@ -191,6 +191,9 @@ function Emulator:resume(...)
 end
 
 function love.load()
+	if love.system.getOS() == "Android" then
+		love.keyboard.setTextInput(true)
+	end
 	if _conf.lockfps > 0 then 
 		min_dt = 1/_conf.lockfps
 		next_time = love.timer.getTime()
@@ -255,6 +258,10 @@ function  love.mousepressed(x, y, button)
 end
 
 function love.textinput(unicode)
+	-- Hack to get around android bug
+	if love.system.getOS() == "Android" and keys[unicode] ~= nil then
+		table.insert(Emulator.eventQueue, {"key", keys[unicode]})
+	end
    	if ChatAllowedCharacters[unicode:byte()] then
 		table.insert(Emulator.eventQueue, {"char", unicode})
 	end
@@ -287,6 +294,10 @@ function love.keypressed(key, isrepeat)
 	elseif isrepeat and love.keyboard.isDown("ctrl") and (key == "t" or key == "s" or key == "r") then
 	elseif keys[key] then
    		table.insert(Emulator.eventQueue, {"key", keys[key]})
+		-- Hack to get around android bug
+		if love.system.getOS() == "Android" and #key == 1 and ChatAllowedCharacters[key:byte()] then
+			table.insert(Emulator.eventQueue, {"char", key})
+		end
    	end
 end
 
@@ -442,7 +453,7 @@ function love.run()
 				love.timer.sleep(next_time - cur_time)
 			end
 		end
-		
+
 		if love.timer then love.timer.sleep(0.001) end
 		if Screen.dirty then
 			love.graphics.present()

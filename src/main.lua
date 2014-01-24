@@ -44,7 +44,11 @@ end
 peripheral = {}
 local tFiles = love.filesystem.getDirectoryItems("peripheral")
 for k,v in pairs(tFiles) do
-	require("peripheral." .. v:sub(1,-5))
+	local stat, err = pcall(require,"peripheral." .. v:sub(1,-5))
+	if stat == false then
+		Screen:message("Could not load peripheral." .. v:sub(1,-5))
+		print(err)
+	end
 end
 
 keys = {

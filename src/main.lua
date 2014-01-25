@@ -20,7 +20,7 @@ if _conf.compat_loadstringMask ~= nil then
 	Screen:message("_conf.compat_loadstringMask is obsolete")
 end
 
--- Test if HTTPS is working.
+-- Test if HTTPS is working
 if _conf.useLuaSec then
 	local stat, err = pcall(function()
 		local trash = require("ssl.https")
@@ -40,7 +40,7 @@ if _conf.useLuaSec then
 	end
 end
 
--- Load virtual peripherals.
+-- Load virtual peripherals
 peripheral = {}
 local tFiles = love.filesystem.getDirectoryItems("peripheral")
 for k,v in pairs(tFiles) do
@@ -51,6 +51,7 @@ for k,v in pairs(tFiles) do
 	end
 end
 
+-- Conversion table for Love2D keys to LWJGL key codes
 keys = {
 	["q"] = 16, ["w"] = 17, ["e"] = 18, ["r"] = 19,
 	["t"] = 20, ["y"] = 21, ["u"] = 22, ["i"] = 23,
@@ -245,19 +246,13 @@ function love.load()
 end
 
 function love.mousereleased(x, y, _button)
-
-	if x > 0 and x < Screen.sWidth
-		and y > 0 and y < Screen.sHeight then -- Within screen bounds.
-
+	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
 		Emulator.mouse.isPressed = false
 	end
 end
 
-function  love.mousepressed(x, y, button)
-
-	if x > 0 and x < Screen.sWidth
-		and y > 0 and y < Screen.sHeight then -- Within screen bounds.
-
+function love.mousepressed(x, y, button)
+	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
 		local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
 		local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
 
@@ -283,7 +278,7 @@ function love.textinput(unicode)
 	if love.system.getOS() == "Android" and keys[unicode] ~= nil then
 		table.insert(Emulator.eventQueue, {"key", keys[unicode]})
 	end
-   	if ChatAllowedCharacters[unicode:byte()] then
+	if ChatAllowedCharacters[unicode:byte()] then
 		table.insert(Emulator.eventQueue, {"char", unicode})
 	end
 end
@@ -314,12 +309,12 @@ function love.keypressed(key, isrepeat)
 		end
 	elseif isrepeat and love.keyboard.isDown("ctrl") and (key == "t" or key == "s" or key == "r") then
 	elseif keys[key] then
-   		table.insert(Emulator.eventQueue, {"key", keys[key]})
+		table.insert(Emulator.eventQueue, {"key", keys[key]})
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and #key == 1 and ChatAllowedCharacters[key:byte()] then
 			table.insert(Emulator.eventQueue, {"char", key})
 		end
-   	end
+	end
 end
 
 function love.visible(see)
@@ -335,7 +330,7 @@ end
 	monitor_resize
 ]]
 
-function updateShortcut(name, key1, key2, cb)
+local function updateShortcut(name, key1, key2, cb)
 	if Emulator.actions[name] ~= nil then
 		if love.keyboard.isDown(key1) and love.keyboard.isDown(key2) then
 			if love.timer.getTime() - Emulator.actions[name] > 1 then
@@ -348,20 +343,20 @@ function updateShortcut(name, key1, key2, cb)
 	end
 end
 
-function love.update(dt)
+function Emulator:update()
 	if _conf.lockfps > 0 then next_time = next_time + min_dt end
 	local now = love.timer.getTime()
 	if _conf.enableAPI_http then HttpRequest.checkRequests() end
-	if Emulator.reboot then Emulator:start() end
+	if self.reboot then self:start() end
 
 	updateShortcut("terminate", "ctrl", "t", function()
-			table.insert(Emulator.eventQueue, {"terminate"})
+			table.insert(self.eventQueue, {"terminate"})
 		end)
 	updateShortcut("shutdown",  "ctrl", "s", function()
-			Emulator:stop()
+			self:stop()
 		end)
 	updateShortcut("reboot",    "ctrl", "r", function()
-			Emulator:stop(true)
+			self:stop(true)
 		end)
 
 	if api.comp.blink then
@@ -377,24 +372,24 @@ function love.update(dt)
 		end
 	end
 	if _conf.cclite_showFPS then
-		if now - Emulator.lastFPS >= 1 then
-			Emulator.FPS = love.timer.getFPS()
-			Emulator.lastFPS = now
+		if now - self.lastFPS >= 1 then
+			self.FPS = love.timer.getFPS()
+			self.lastFPS = now
 			Screen.dirty = true
 		end
 	end
 
-	for k, v in pairs(Emulator.actions.timers) do
+	for k, v in pairs(self.actions.timers) do
 		if now >= v then
-			table.insert(Emulator.eventQueue, {"timer", k})
-			Emulator.actions.timers[k] = nil
+			table.insert(self.eventQueue, {"timer", k})
+			self.actions.timers[k] = nil
 		end
 	end
 
-	for k, v in pairs(Emulator.actions.alarms) do
+	for k, v in pairs(self.actions.alarms) do
 		if v.day <= api.os.day() and v.time <= api.env.os.time() then
-			table.insert(Emulator.eventQueue, {"alarm", k})
-			Emulator.actions.alarms[k] = nil
+			table.insert(self.eventQueue, {"alarm", k})
+			self.actions.alarms[k] = nil
 		end
 	end
 	
@@ -407,27 +402,27 @@ function love.update(dt)
 	end
 	
 	-- Mouse
-	if Emulator.mouse.isPressed then
+	if self.mouse.isPressed then
 		local mouseX = love.mouse.getX()
 		local mouseY = love.mouse.getY()
 		local termMouseX = math_bind(math.floor((mouseX - _conf.terminal_guiScale) / Screen.pixelWidth) + 1, 1, _conf.terminal_width)
 		local termMouseY = math_bind(math.floor((mouseY - _conf.terminal_guiScale) / Screen.pixelHeight) + 1, 1, _conf.terminal_width)
-		if (termMouseX ~= Emulator.mouse.lastTermX or termMouseY ~= Emulator.mouse.lastTermY)
+		if (termMouseX ~= self.mouse.lastTermX or termMouseY ~= self.mouse.lastTermY)
 			and (mouseX > 0 and mouseX < Screen.sWidth and
 				mouseY > 0 and mouseY < Screen.sHeight) then
 
-			Emulator.mouse.lastTermX = termMouseX
-			Emulator.mouse.lastTermY = termMouseY
+			self.mouse.lastTermX = termMouseX
+			self.mouse.lastTermY = termMouseY
 
-			table.insert (Emulator.eventQueue, {"mouse_drag", love.mouse.isDown("r") and 2 or 1, termMouseX, termMouseY})
+			table.insert (self.eventQueue, {"mouse_drag", love.mouse.isDown("r") and 2 or 1, termMouseX, termMouseY})
 		end
 	end
 
-	if #Emulator.eventQueue > 0 then
-		for k, v in pairs(Emulator.eventQueue) do
-			Emulator:resume(unpack(v))
+	if #self.eventQueue > 0 then
+		for k, v in pairs(self.eventQueue) do
+			self:resume(unpack(v))
 		end
-		Emulator.eventQueue = {}
+		self.eventQueue = {}
 	end
 end
 
@@ -460,7 +455,7 @@ function love.run()
 		love.timer.step()
 
 		-- Call update and draw
-		love.update(dt) -- will pass 0 if love.timer is disabled
+		Emulator:update()
 		if not love.window.isVisible() then Screen.dirty = false end
 		if Screen.dirty then
 			Screen:draw()

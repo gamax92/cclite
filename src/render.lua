@@ -119,44 +119,44 @@ local function drawMessage(message,x,y)
 end
 
 function Screen:draw()
+	-- Render terminal
 	if not Emulator.running then
 		setColor(COLOUR_FULL_BLACK)
 		ldrawRect("fill", 0, 0, self.sWidth, self.sHeight)
-		return
-	end
+	else
+		-- Render background color
+		setColor(COLOUR_CODE[self.backgroundColourB[1][1]])
+		for y = 0, decHeight do
+			for x = 0, decWidth do
 
-	-- Render background color
-	setColor(COLOUR_CODE[self.backgroundColourB[1][1]])
-	for y = 0, decHeight do
-		for x = 0, decWidth do
+				setColor(COLOUR_CODE[self.backgroundColourB[y + 1][x + 1]]) -- TODO COLOUR_CODE lookup might be too slow?
+				ldrawRect("fill", x * self.pixelWidth + (x == 0 and 0 or _conf.terminal_guiScale), y * self.pixelHeight + (y == 0 and 0 or _conf.terminal_guiScale), self.pixelWidth + ((x == 0 or x == decWidth) and _conf.terminal_guiScale or 0), self.pixelHeight + ((y == 0 or y == decHeight) and _conf.terminal_guiScale or 0))
 
-			setColor(COLOUR_CODE[self.backgroundColourB[y + 1][x + 1]]) -- TODO COLOUR_CODE lookup might be too slow?
-			ldrawRect("fill", x * self.pixelWidth + (x == 0 and 0 or _conf.terminal_guiScale), y * self.pixelHeight + (y == 0 and 0 or _conf.terminal_guiScale), self.pixelWidth + ((x == 0 or x == decWidth) and _conf.terminal_guiScale or 0), self.pixelHeight + ((y == 0 or y == decHeight) and _conf.terminal_guiScale or 0))
-
-		end
-	end
-
-	-- Render text
-	for y = 0, decHeight do
-		local self_textB = self.textB[y + 1]
-		local self_textColourB = self.textColourB[y + 1]
-		for x = 0, decWidth do
-			local text = self_textB[x + 1]
-			if text ~= " " and text ~= "\t" then
-				local sByte = string.byte(text)
-				if sByte < 32 or sByte > 126 or sByte == 96 then
-					text = "?"
-				end
-				setColor(COLOUR_CODE[self_textColourB[x + 1]])
-				lprint(text, x * self.pixelWidth + tOffset[text] + _conf.terminal_guiScale, y * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 			end
 		end
-	end
 
-	-- Render cursor
-	if api.comp.blink and self.showCursor then
-		setColor(COLOUR_CODE[api.comp.fg])
-		lprint("_", (api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+		-- Render text
+		for y = 0, decHeight do
+			local self_textB = self.textB[y + 1]
+			local self_textColourB = self.textColourB[y + 1]
+			for x = 0, decWidth do
+				local text = self_textB[x + 1]
+				if text ~= " " and text ~= "\t" then
+					local sByte = string.byte(text)
+					if sByte < 32 or sByte > 126 or sByte == 96 then
+						text = "?"
+					end
+					setColor(COLOUR_CODE[self_textColourB[x + 1]])
+					lprint(text, x * self.pixelWidth + tOffset[text] + _conf.terminal_guiScale, y * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+				end
+			end
+		end
+
+		-- Render cursor
+		if api.comp.blink and self.showCursor then
+			setColor(COLOUR_CODE[api.comp.fg])
+			lprint("_", (api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+		end
 	end
 
 	-- Render emulator elements

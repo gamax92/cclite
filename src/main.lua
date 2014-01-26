@@ -284,12 +284,14 @@ function love.textinput(unicode)
 end
 
 function love.keypressed(key, isrepeat)
-	if Emulator.actions.terminate == nil    and love.keyboard.isDown("ctrl") and not isrepeat and key == "t" then
-		Emulator.actions.terminate = love.timer.getTime()
-	elseif Emulator.actions.shutdown == nil and love.keyboard.isDown("ctrl") and not isrepeat and key == "s" then
-		Emulator.actions.shutdown =  love.timer.getTime()
-	elseif Emulator.actions.reboot == nil   and love.keyboard.isDown("ctrl") and not isrepeat and key == "r" then
-		Emulator.actions.reboot =    love.timer.getTime()
+	if love.keyboard.isDown("ctrl") and not isrepeat then
+		if Emulator.actions.terminate == nil    and key == "t" then
+			Emulator.actions.terminate = love.timer.getTime()
+		elseif Emulator.actions.shutdown == nil and key == "s" then
+			Emulator.actions.shutdown =  love.timer.getTime()
+		elseif Emulator.actions.reboot == nil   and key == "r" then
+			Emulator.actions.reboot =    love.timer.getTime()
+		end
 	else -- Ignore key shortcuts before "press any key" action. TODO: This might be slightly buggy!
 		if not Emulator.running and not isrepeat then
 			Emulator:start()

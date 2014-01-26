@@ -1,11 +1,12 @@
 local ID = 0
-function peripheral.diskDrive(sSide)
+function peripheral.base.diskDrive(sSide)
 	-- TODO Fully test this.
 	local obj = {}
 	local content = {type = ""}
 	local side = sSide
-	function obj.getType() return "drive" end
+	obj.type = "diskDrive"
 	function obj.getMethods() return {"isDiskPresent","getDiskLabel","setDiskLabel","hasData","getMountPath","hasAudio","getAudioTitle","playAudio","stopAudio","ejectDisk","getDiskID"} end
+	function obj.ccliteGetMethods() return {"diskLoad"} end
 	function obj.call(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "isDiskPresent" then
@@ -49,8 +50,6 @@ function peripheral.diskDrive(sSide)
 				return
 			end
 			return content.id
-		else
-			error("No such method " .. sMethod,2)
 		end
 	end
 	function obj.ccliteCall(sMethod, ...)
@@ -93,9 +92,8 @@ function peripheral.diskDrive(sSide)
 			else
 				error("Invalid type " .. sType,2)
 			end
-		else
-			error("No such method " .. sMethod,2)
 		end
 	end
 	return obj
 end
+peripheral.types.diskDrive = "drive"

@@ -1,8 +1,9 @@
-function peripheral.commandBlock()
+function peripheral.base.commandBlock()
 	local obj = {}
 	local cmd = ""
-	function obj.getType() return "command" end
+	obj.type = "commandBlock"
 	function obj.getMethods() return {"getCommand", "setCommand", "runCommand"} end
+	function obj.ccliteGetMethods() return {} end
 	function obj.call(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "getCommand" then
@@ -11,9 +12,8 @@ function peripheral.commandBlock()
 			if type(tArgs[1]) ~= "string" then error("Expected string",2) end
 			cmd = tArgs[1]
 		elseif sMethod == "runCommand" then
-		else
-			error("No such method " .. sMethod,2)
 		end
 	end
 	return obj
 end
+peripheral.types.commandBlock = "command"

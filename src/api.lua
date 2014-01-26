@@ -361,14 +361,24 @@ if _conf.enableAPI_cclite then
 		if type(sSide) ~= "string" or type(sType) ~= "string" then
 			error("Expected string, string",2)
 		end
-		if not peripheral[sType] then
+		if not peripheral.base[sType] then
 			error("No virtual peripheral of type " .. sType,2)
 		end
 		if api.cclite.peripherals[sSide] then
 			error("Peripheral already attached to " .. sSide,2)
 		end
-		api.cclite.peripherals[sSide] = peripheral[sType](sSide)
+		api.cclite.peripherals[sSide] = peripheral.base[sType](sSide)
 		if api.cclite.peripherals[sSide] ~= nil then
+			local methods = api.cclite.peripherals[sSide].getMethods()
+			api.cclite.peripherals[sSide].cache = {}
+			for i = 1,#methods do
+				api.cclite.peripherals[sSide].cache[methods[i]] = true
+			end
+			local ccliteMethods = api.cclite.peripherals[sSide].ccliteGetMethods()
+			api.cclite.peripherals[sSide].ccliteCache = {}
+			for i = 1,#ccliteMethods do
+				api.cclite.peripherals[sSide].ccliteCache[ccliteMethods[i]] = true
+			end
 			table.insert(Emulator.eventQueue, {"peripheral",sSide})
 		else
 			error("No peripheral added",2)
@@ -381,6 +391,11 @@ if _conf.enableAPI_cclite then
 		end
 		api.cclite.peripherals[sSide] = nil
 		table.insert(Emulator.eventQueue, {"peripheral_detach",sSide})
+	end
+	function api.cclite.getMethods(sSide)
+		if type(sSide) ~= "string" then error("Expected string",2) end
+		if api.cclite.peripherals[sSide] then return api.cclite.peripherals[sSide].ccliteGetMethods() end
+		return
 	end
 	function api.cclite.call(sSide, sMethod, ...)
 		if type(sSide) ~= "string" then error("Expected string",2) end
@@ -482,7 +497,7 @@ function api.peripheral.isPresent(sSide)
 end
 function api.peripheral.getType(sSide)
 	if type(sSide) ~= "string" then error("Expected string",2) end
-	if api.cclite.peripherals[sSide] then return api.cclite.peripherals[sSide].getType() end
+	if api.cclite.peripherals[sSide] then return peripheral.types[api.cclite.peripherals[sSide].type] end
 	return
 end
 function api.peripheral.getMethods(sSide)
@@ -493,6 +508,9 @@ end
 function api.peripheral.call(sSide, sMethod, ...)
 	if type(sSide) ~= "string" or type(sMethod) ~= "string" then error("Expected string, string",2) end
 	if not api.cclite.peripherals[sSide] then error("No peripheral attached",2) end
+	if not api.cclite.peripherals[sSide].cache[sMethod] then
+		error("No such method " .. sMethod,2)
+	end
 	return api.cclite.peripherals[sSide].call(sMethod, ...)
 end
 function api.peripheral.getNames()
@@ -1047,6 +1065,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 		api.env.cclite = {
 			peripheralAttach = api.cclite.peripheralAttach,
 			peripheralDetach = api.cclite.peripheralDetach,
+			getMethods = api.cclite.getMethods,
 			call = api.cclite.call,
 			log = print,
 			message = api.cclite.message,

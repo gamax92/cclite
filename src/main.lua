@@ -42,6 +42,8 @@ end
 
 -- Load virtual peripherals
 peripheral = {}
+peripheral.base = {}
+peripheral.types = {}
 local tFiles = love.filesystem.getDirectoryItems("peripheral")
 for k,v in pairs(tFiles) do
 	local stat, err = pcall(require,"peripheral." .. v:sub(1,-5))

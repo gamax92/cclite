@@ -1,8 +1,9 @@
-function peripheral.wirelessModem()
+function peripheral.base.wirelessModem()
 	local obj = {}
 	local channels = {}
-	function obj.getType() return "modem" end
+	obj.type = "wirelessModem"
 	function obj.getMethods() return {"isOpen", "open", "close", "closeAll", "transmit", "isWireless"} end
+	function obj.ccliteGetMethods() return {} end
 	function obj.call(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "isOpen" then
@@ -33,9 +34,8 @@ function peripheral.wirelessModem()
 			if oMessage == nil then error("2",2) end
 		elseif sMethod == "isWireless" then
 			return true
-		else
-			error("No such method " .. sMethod,2)
 		end
 	end
 	return obj
 end
+peripheral.types.wirelessModem = "modem"

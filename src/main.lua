@@ -129,10 +129,8 @@ end
 Emulator = {
 	running = false,
 	reboot = false, -- Tells update loop to start Emulator automatically
+	blockInput = false,
 	actions = { -- Keyboard commands i.e. ctrl + s and timers/alarms
-		terminate = nil,
-		shutdown = nil,
-		reboot = nil,
 		lastTimer = 0,
 		lastAlarm = 0,
 		timers = {},
@@ -146,8 +144,6 @@ Emulator = {
 	},
 	mouse = {
 		isPressed = false,
-		lastTermX = nil,
-		lastTermY = nil,
 	},
 	lastFPS = love.timer.getTime(),
 	FPS = love.timer.getFPS(),
@@ -209,6 +205,7 @@ function Emulator:resume(...)
 	if not ok then
 		error(err,math.huge) -- Bios was unable to handle error, crash CCLite
 	end
+	self.blockInput = false
 	return ok, err
 end
 
@@ -274,12 +271,14 @@ function love.mousepressed(x, y, button)
 end
 
 function love.textinput(unicode)
-	-- Hack to get around android bug
-	if love.system.getOS() == "Android" and keys[unicode] ~= nil then
-		table.insert(Emulator.eventQueue, {"key", keys[unicode]})
-	end
-	if ChatAllowedCharacters[unicode:byte()] then
-		table.insert(Emulator.eventQueue, {"char", unicode})
+	if not Emulator.blockInput then
+		-- Hack to get around android bug
+		if love.system.getOS() == "Android" and keys[unicode] ~= nil then
+			table.insert(Emulator.eventQueue, {"key", keys[unicode]})
+		end
+		if ChatAllowedCharacters[unicode:byte()] then
+			table.insert(Emulator.eventQueue, {"char", unicode})
+		end
 	end
 end
 
@@ -295,6 +294,7 @@ function love.keypressed(key, isrepeat)
 	else -- Ignore key shortcuts before "press any key" action. TODO: This might be slightly buggy!
 		if not Emulator.running and not isrepeat then
 			Emulator:start()
+			Emulator.blockInput = true
 			return
 		end
 	end

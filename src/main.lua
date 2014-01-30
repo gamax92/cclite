@@ -211,6 +211,11 @@ function Emulator:resume(...)
 	return ok, err
 end
 
+local L2DScreenW, L2DScreenH = 800, 600
+function love.resize(w, h)
+	L2DScreenW, L2DScreenH = w, h
+end
+
 function love.load()
 	if love.system.getOS() == "Android" then
 		love.keyboard.setTextInput(true)
@@ -226,6 +231,31 @@ function love.load()
 	emuframe = loveframes.Create("frame")
 	emuframe:SetName("CCLite Emulator")
 	emuframe:SetSize((_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 2, (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 26)
+	emuframe:CenterWithinArea(0,0,L2DScreenW, L2DScreenH)
+	
+	--[[
+	-- LoveFrames has no Menu Bar objects, emulate one.
+	menubar = loveframes.Create("panel")
+	menubar:SetSize(L2DScreenW, 25)
+	menubar.buttons = {}
+	local smallfont = love.graphics.newFont(10)
+	local offset = 0
+	local menu = {}
+	menu.menu = loveframes.Create("menu")
+	menu.menu:SetPos(offset,25)
+	menu.menu:AddOption("Option", false, function() end)
+	menu.menu:SetVisible(false)
+	menu.button = loveframes.Create("button")
+	menu.button.menu = menu.menu
+	menu.button:SetPos(offset,0)
+	menu.button:SetText("Button")
+	menu.button:SetSize(smallfont:getWidth("Button") + 8, 25)
+	function menu.button.OnClick(object)
+		object.menu:SetVisible(true)
+	end
+	table.insert(menubar.buttons, menu)
+	offset = offset + smallfont:getWidth("Button") + 8
+	--]]
 	
 	love.filesystem.setIdentity("ccemu")
 
@@ -483,9 +513,9 @@ function love.run()
 		-- Call update and draw
 		Emulator:update(dt)
 		if not love.window.isVisible() then Screen.dirty = false end
-		if true then -- Screen.dirty then
+		if true then --Screen.dirty then
 			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)
-			love.graphics.rectangle("fill", 0, 0, 800, 600)
+			love.graphics.rectangle("fill", 0, 0, L2DScreenW, L2DScreenH)
 			loveframes.draw()
 			love.graphics.translate(emuframe.x + 1, emuframe.y + 25)
 			Screen:draw()

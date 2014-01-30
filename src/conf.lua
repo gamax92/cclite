@@ -34,8 +34,8 @@ function love.conf(t)
 	t.console = false -- Enable this to see why you get emulator messages.
     t.window.title = "ComputerCraft Emulator"
 	t.window.icon = "res/icon.png"
-	t.window.width = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
-	t.window.height = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
+	t.window.width = 800
+	t.window.height = 600
 	t.window.vsync = false
     t.modules.audio = false
     t.modules.joystick = false

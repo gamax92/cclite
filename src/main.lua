@@ -220,6 +220,13 @@ function love.load()
 		next_time = love.timer.getTime()
 	end
 
+	tween = require("libraries.third-party.tween")
+	require("libraries.loveframes")
+	
+	emuframe = loveframes.Create("frame")
+	emuframe:SetName("CCLite Emulator")
+	emuframe:SetSize((_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 2, (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 26)
+	
 	love.filesystem.setIdentity("ccemu")
 
 	local fontPack = {131,161,163,166,170,171,172,174,186,187,188,189,191,196,197,198,199,201,209,214,215,216,220,224,225,226,228,229,230,231,232,233,234,235,236,237,238,239,241,242,243,244,246,248,249,250,251,252,255}
@@ -245,12 +252,14 @@ function love.load()
 end
 
 function love.mousereleased(x, y, _button)
+	loveframes.mousereleased(x, y, button)
 	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
 		Emulator.mouse.isPressed = false
 	end
 end
 
 function love.mousepressed(x, y, button)
+	loveframes.mousepressed(x, y, button)
 	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
 		local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
 		local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
@@ -273,6 +282,7 @@ function love.mousepressed(x, y, button)
 end
 
 function love.textinput(unicode)
+	loveframes.textinput(unicode)
 	if not Emulator.blockInput then
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and keys[unicode] ~= nil then
@@ -285,6 +295,7 @@ function love.textinput(unicode)
 end
 
 function love.keypressed(key, isrepeat)
+	loveframes.keypressed(key, unicode)
 	if love.keyboard.isDown("ctrl") and not isrepeat then
 		if Emulator.actions.terminate == nil    and key == "t" then
 			Emulator.actions.terminate = love.timer.getTime()
@@ -321,6 +332,12 @@ function love.keypressed(key, isrepeat)
 	end
 end
 
+function love.keyreleased(key)
+
+	loveframes.keyreleased(key)
+	
+end
+
 function love.visible(see)
 	if see then
 		Screen.dirty = true
@@ -347,8 +364,10 @@ local function updateShortcut(name, key1, key2, cb)
 	end
 end
 
-function Emulator:update()
+function Emulator:update(dt)
 	if _conf.lockfps > 0 then next_time = next_time + min_dt end
+	loveframes.update(dt)
+	tween.update(dt)
 	local now = love.timer.getTime()
 	if _conf.enableAPI_http then HttpRequest.checkRequests() end
 	if self.reboot then self:start() end
@@ -435,34 +454,42 @@ function love.run()
 	math.randomseed(os.time())
 	math.random() math.random()
 
+	love.event.pump()
+	
 	love.load(arg)
+	
+	-- We don't want the first frame's dt to include time taken by love.load.
+    love.timer.step()
+	
+	local dt = 0
 
 	-- Main loop time.
 	while true do
 		-- Process events.
-		if love.event then
-			love.event.pump()
-			for e,a,b,c,d in love.event.poll() do
-				if e == "quit" then
-					if not love.quit or not love.quit() then
-						if love.audio then
-							love.audio.stop()
-						end
-						return
-					end
+		love.event.pump()
+		for e,a,b,c,d in love.event.poll() do
+			if e == "quit" then
+				if not love.quit or not love.quit() then
+					return
 				end
-				love.handlers[e](a,b,c,d)
 			end
+			love.handlers[e](a,b,c,d)
 		end
 
 		-- Update the FPS counter
 		love.timer.step()
+		dt = love.timer.getDelta()
 
 		-- Call update and draw
-		Emulator:update()
+		Emulator:update(dt)
 		if not love.window.isVisible() then Screen.dirty = false end
-		if Screen.dirty then
+		if true then -- Screen.dirty then
+			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)
+			love.graphics.rectangle("fill", 0, 0, 800, 600)
+			loveframes.draw()
+			love.graphics.translate(emuframe.x + 1, emuframe.y + 25)
 			Screen:draw()
+			love.graphics.translate(-emuframe.x - 1, -emuframe.y - 25)
 		end
 
 		if _conf.lockfps > 0 then 
@@ -470,12 +497,12 @@ function love.run()
 			if next_time < cur_time then
 				next_time = cur_time
 			else
-				love.timer.sleep(next_time - cur_time)
+				--love.timer.sleep(next_time - cur_time)
 			end
 		end
 
 		if love.timer then love.timer.sleep(0.001) end
-		if Screen.dirty then
+		if true then --Screen.dirty then
 			love.graphics.present()
 			Screen.dirty = false
 		end

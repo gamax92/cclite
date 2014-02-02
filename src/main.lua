@@ -128,7 +128,7 @@ local function math_bind(val,lower,upper)
 	return math.min(math.max(val,lower),upper)
 end
 
-Emulator = {
+Computer = {
 	running = false,
 	reboot = false, -- Tells update loop to start Emulator automatically
 	blockInput = false,
@@ -151,7 +151,7 @@ Emulator = {
 	FPS = love.timer.getFPS(),
 }
 
-function Emulator:start()
+function Computer:start()
 	self.reboot = false
 	for y = 1, _conf.terminal_height do
 		local screen_textB = Screen.textB[y]
@@ -162,7 +162,7 @@ function Emulator:start()
 		end
 	end
 	Screen.dirty = true
-	api.init()
+	self.api = api.init(self)
 
 	local fn, err = loadstring(love.filesystem.read("/lua/bios.lua"),"@bios")
 
@@ -171,14 +171,14 @@ function Emulator:start()
 		return
 	end
 
-	setfenv(fn, api.env)
+	setfenv(fn, self.api.env)
 
 	self.proc = coroutine.create(fn)
 	self.running = true
 	self:resume({})
 end
 
-function Emulator:stop(reboot)
+function Computer:stop(reboot)
 	self.proc = nil
 	self.running = false
 	self.reboot = reboot
@@ -195,14 +195,14 @@ function Emulator:stop(reboot)
 	self.eventQueue = {}
 end
 
-function Emulator:resume(...)
+function Computer:resume(...)
 	if not self.running then return end
 	debug.sethook(self.proc,function() error("Too long without yielding",2) end,"",9e7)
 	local ok, err = coroutine.resume(self.proc, ...)
 	debug.sethook(self.proc)
-	if not self.proc then return end -- Emulator:stop could be called within the coroutine resulting in proc being nil
+	if not self.proc then return end -- Computer:stop could be called within the coroutine resulting in proc being nil
 	if coroutine.status(self.proc) == "dead" then -- Which could cause an error here
-		Emulator:stop()
+		self:stop()
 	end
 	if not ok then
 		error(err,math.huge) -- Bios was unable to handle error, crash CCLite
@@ -232,6 +232,13 @@ function love.load()
 	emuframe:SetName("CCLite Emulator")
 	emuframe:SetSize((_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 2, (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 26)
 	emuframe:CenterWithinArea(0,0,L2DScreenW, L2DScreenH)
+	emuframe.olddraw = emuframe.draw
+	function emuframe:draw()
+		self:olddraw()
+		love.graphics.translate(self.x + 1, self.y + 25)
+		Screen:draw(Computer)
+		love.graphics.translate(-self.x - 1, -self.y - 25)
+	end
 	
 	--[[
 	-- LoveFrames has no Menu Bar objects, emulate one.
@@ -278,13 +285,13 @@ function love.load()
 	
 	love.keyboard.setKeyRepeat(true)
 
-	Emulator:start()
+	Computer:start()
 end
 
 function love.mousereleased(x, y, _button)
 	loveframes.mousereleased(x, y, button)
 	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
-		Emulator.mouse.isPressed = false
+		Computer.mouse.isPressed = false
 	end
 end
 
@@ -295,31 +302,31 @@ function love.mousepressed(x, y, button)
 		local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
 
 		if button == "l" or button == "m" or button == "r" then
-			Emulator.mouse.isPressed = true
-			Emulator.mouse.lastTermX = termMouseX
-			Emulator.mouse.lastTermY = termMouseY
+			Computer.mouse.isPressed = true
+			Computer.mouse.lastTermX = termMouseX
+			Computer.mouse.lastTermY = termMouseY
 			if button == "l" then button = 1
 			elseif button == "m" then button = 3
 			elseif button == "r" then button = 2
 			end
-			table.insert(Emulator.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
+			table.insert(Computer.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
 		elseif button == "wu" then -- Scroll up
-			table.insert(Emulator.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
+			table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
 		elseif button == "wd" then -- Scroll down
-			table.insert(Emulator.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
+			table.insert(Computer.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
 		end
 	end
 end
 
 function love.textinput(unicode)
 	loveframes.textinput(unicode)
-	if not Emulator.blockInput then
+	if not Computer.blockInput then
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and keys[unicode] ~= nil then
-			table.insert(Emulator.eventQueue, {"key", keys[unicode]})
+			table.insert(Computer.eventQueue, {"key", keys[unicode]})
 		end
 		if ChatAllowedCharacters[unicode:byte()] then
-			table.insert(Emulator.eventQueue, {"char", unicode})
+			table.insert(Computer.eventQueue, {"char", unicode})
 		end
 	end
 end
@@ -327,17 +334,17 @@ end
 function love.keypressed(key, isrepeat)
 	loveframes.keypressed(key, unicode)
 	if love.keyboard.isDown("ctrl") and not isrepeat then
-		if Emulator.actions.terminate == nil    and key == "t" then
-			Emulator.actions.terminate = love.timer.getTime()
-		elseif Emulator.actions.shutdown == nil and key == "s" then
-			Emulator.actions.shutdown =  love.timer.getTime()
-		elseif Emulator.actions.reboot == nil   and key == "r" then
-			Emulator.actions.reboot =    love.timer.getTime()
+		if Computer.actions.terminate == nil    and key == "t" then
+			Computer.actions.terminate = love.timer.getTime()
+		elseif Computer.actions.shutdown == nil and key == "s" then
+			Computer.actions.shutdown =  love.timer.getTime()
+		elseif Computer.actions.reboot == nil   and key == "r" then
+			Computer.actions.reboot =    love.timer.getTime()
 		end
 	else -- Ignore key shortcuts before "press any key" action. TODO: This might be slightly buggy!
-		if not Emulator.running and not isrepeat then
-			Emulator:start()
-			Emulator.blockInput = true
+		if not Computer.running and not isrepeat then
+			Computer:start()
+			Computer.blockInput = true
 			return
 		end
 	end
@@ -354,10 +361,10 @@ function love.keypressed(key, isrepeat)
 		end
 	elseif isrepeat and love.keyboard.isDown("ctrl") and (key == "t" or key == "s" or key == "r") then
 	elseif keys[key] then
-		table.insert(Emulator.eventQueue, {"key", keys[key]})
+		table.insert(Computer.eventQueue, {"key", keys[key]})
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and #key == 1 and ChatAllowedCharacters[key:byte()] then
-			table.insert(Emulator.eventQueue, {"char", key})
+			table.insert(Computer.eventQueue, {"char", key})
 		end
 	end
 end
@@ -382,19 +389,19 @@ end
 ]]
 
 local function updateShortcut(name, key1, key2, cb)
-	if Emulator.actions[name] ~= nil then
+	if Computer.actions[name] ~= nil then
 		if love.keyboard.isDown(key1) and love.keyboard.isDown(key2) then
-			if love.timer.getTime() - Emulator.actions[name] > 1 then
-				Emulator.actions[name] = nil
+			if love.timer.getTime() - Computer.actions[name] > 1 then
+				Computer.actions[name] = nil
 				if cb then cb() end
 			end
 		else
-			Emulator.actions[name] = nil
+			Computer.actions[name] = nil
 		end
 	end
 end
 
-function Emulator:update(dt)
+function Computer:update(dt)
 	if _conf.lockfps > 0 then next_time = next_time + min_dt end
 	loveframes.update(dt)
 	tween.update(dt)
@@ -412,14 +419,14 @@ function Emulator:update(dt)
 			self:stop(true)
 		end)
 
-	if api.comp.blink then
+	if self.api.comp.blink then
 		if Screen.lastCursor == nil then
 			Screen.lastCursor = now
 		end
 		if now - Screen.lastCursor >= 0.25 then
 			Screen.showCursor = not Screen.showCursor
 			Screen.lastCursor = now
-			if api.comp.cursorY >= 1 and api.comp.cursorY <= _conf.terminal_height and api.comp.cursorX >= 1 and api.comp.cursorX <= _conf.terminal_width then
+			if self.api.comp.cursorY >= 1 and self.api.comp.cursorY <= _conf.terminal_height and self.api.comp.cursorX >= 1 and self.api.comp.cursorX <= _conf.terminal_width then
 				Screen.dirty = true
 			end
 		end
@@ -440,7 +447,7 @@ function Emulator:update(dt)
 	end
 
 	for k, v in pairs(self.actions.alarms) do
-		if v.day <= api.os.day() and v.time <= api.env.os.time() then
+		if v.day <= self.api.os.day() and v.time <= self.api.os.time() then
 			table.insert(self.eventQueue, {"alarm", k})
 			self.actions.alarms[k] = nil
 		end
@@ -511,15 +518,12 @@ function love.run()
 		dt = love.timer.getDelta()
 
 		-- Call update and draw
-		Emulator:update(dt)
+		Computer:update(dt)
 		if not love.window.isVisible() then Screen.dirty = false end
 		if true then --Screen.dirty then
 			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)
 			love.graphics.rectangle("fill", 0, 0, L2DScreenW, L2DScreenH)
 			loveframes.draw()
-			love.graphics.translate(emuframe.x + 1, emuframe.y + 25)
-			Screen:draw()
-			love.graphics.translate(-emuframe.x - 1, -emuframe.y - 25)
 		end
 
 		if _conf.lockfps > 0 then 

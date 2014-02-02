@@ -118,7 +118,9 @@ local function drawMessage(message,x,y)
 	lprint(message, x, y, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 end
 
-function Screen:draw()
+function Screen:draw(Emulator)
+	-- Setup font
+	love.graphics.setFont(Screen.font)
 	-- Render terminal
 	if not Emulator.running then
 		setColor(COLOUR_FULL_BLACK)
@@ -153,9 +155,9 @@ function Screen:draw()
 		end
 
 		-- Render cursor
-		if api.comp.blink and self.showCursor then
-			setColor(COLOUR_CODE[api.comp.fg])
-			lprint("_", (api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+		if Emulator.api.comp.blink and self.showCursor then
+			setColor(COLOUR_CODE[Emulator.api.comp.fg])
+			lprint("_", (Emulator.api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (Emulator.api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 		end
 	end
 

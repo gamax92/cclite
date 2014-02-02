@@ -4,7 +4,7 @@ function peripheral.base.wirelessModem()
 	obj.type = "wirelessModem"
 	function obj.getMethods() return {"isOpen", "open", "close", "closeAll", "transmit", "isWireless"} end
 	function obj.ccliteGetMethods() return {} end
-	function obj.call(sMethod, ...)
+	function obj.call(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "isOpen" then
 			local nChannel = unpack(tArgs)

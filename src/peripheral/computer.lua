@@ -6,7 +6,7 @@ local function baseobj(sType)
 	obj.type = sType
 	function obj.getMethods() return {"turnOn", "shutdown", "reboot", "getID"} end
 	function obj.ccliteGetMethods() return {} end
-	function obj.call(sMethod)
+	function obj.call(Computer, sMethod)
 		if sMethod == "turnOn" then
 		elseif sMethod == "shutdown" then
 		elseif sMethod == "reboot" then

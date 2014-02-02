@@ -8,7 +8,7 @@ function peripheral.base.printer()
 	obj.type = "printer"
 	function obj.getMethods() return {"write","setCursorPos","getCursorPos","getPageSize","newPage","endPage","getInkLevel","setPageTitle","getPaperLevel"} end
 	function obj.ccliteGetMethods() return {"setPaperLevel", "setInkLevel"} end
-	function obj.call(sMethod, ...)
+	function obj.call(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "write" then
 			local sMsg = unpack(tArgs)
@@ -49,7 +49,7 @@ function peripheral.base.printer()
 			return paperCount
 		end
 	end
-	function obj.ccliteCall(sMethod, ...)
+	function obj.ccliteCall(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "setPaperLevel" then
 			local nLevel = unpack(tArgs)

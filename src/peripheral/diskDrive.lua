@@ -7,7 +7,7 @@ function peripheral.base.diskDrive(sSide)
 	obj.type = "diskDrive"
 	function obj.getMethods() return {"isDiskPresent","getDiskLabel","setDiskLabel","hasData","getMountPath","hasAudio","getAudioTitle","playAudio","stopAudio","ejectDisk","getDiskID"} end
 	function obj.ccliteGetMethods() return {"diskLoad"} end
-	function obj.call(sMethod, ...)
+	function obj.call(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "isDiskPresent" then
 			return content.type ~= ""
@@ -39,7 +39,7 @@ function peripheral.base.diskDrive(sSide)
 		elseif sMethod == "stopAudio" then
 		elseif sMethod == "ejectDisk" then
 			if content.type ~= "" then
-				table.insert(Emulator.eventQueue, {"disk_eject", side})
+				table.insert(Computer.eventQueue, {"disk_eject", side})
 				if content.type == "data" then
 					vfs.unmount(content.mount)
 				end
@@ -52,7 +52,7 @@ function peripheral.base.diskDrive(sSide)
 			return content.id
 		end
 	end
-	function obj.ccliteCall(sMethod, ...)
+	function obj.ccliteCall(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "diskLoad" then
 			local sType, sLabel, nID = unpack(tArgs)
@@ -85,7 +85,7 @@ function peripheral.base.diskDrive(sSide)
 					vfs.mount("/disk/" .. nID, "/disk")
 					content.mount = "disk"
 				end
-				table.insert(Emulator.eventQueue, {"disk", side})
+				table.insert(Computer.eventQueue, {"disk", side})
 			elseif sType == "audio" then
 				if type(sLabel) ~= "string" then error("Expected string, string",2) end
 				content = {type = "audio", title = sLabel}

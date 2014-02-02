@@ -6,7 +6,7 @@ function peripheral.base.wiredModem()
 	obj.type = "wiredModem"
 	function obj.getMethods() return {"open","isOpen","close","closeAll","transmit","isWireless","getNamesRemote","isPresentRemote","getTypeRemote","getMethodsRemote","callRemote"} end
 	function obj.ccliteGetMethods() return {"peripheralAttach","peripheralDetach"} end
-	function obj.call(sMethod, ...)
+	function obj.call(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "open" then
 			local nChannel = unpack(tArgs)
@@ -67,7 +67,7 @@ function peripheral.base.wiredModem()
 			return remote[sSide].call(sMethod, unpack(tArgs,3))
 		end
 	end
-	function obj.ccliteCall(sMethod, ...)
+	function obj.ccliteCall(Computer, sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "peripheralAttach" then
 			local sType = unpack(tArgs)
@@ -91,7 +91,7 @@ function peripheral.base.wiredModem()
 			for i = 1,#ccliteMethods do
 				remote[sSide].ccliteCache[ccliteMethods[i]] = true
 			end
-			table.insert(Emulator.eventQueue, {"peripheral",sSide})
+			table.insert(Computer.eventQueue, {"peripheral",sSide})
 		elseif sMethod == "peripheralDetach" then
 			local sSide = unpack(tArgs)
 			if type(sSide) ~= "string" then error("Expected string",2) end
@@ -99,7 +99,7 @@ function peripheral.base.wiredModem()
 				error("No peripheral attached to " .. sSide,2)
 			end
 			remote[sSide] = nil
-			table.insert(Emulator.eventQueue, {"peripheral_detach",sSide})
+			table.insert(Computer.eventQueue, {"peripheral_detach",sSide})
 		end
 	end
 	return obj

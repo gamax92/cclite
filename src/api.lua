@@ -157,6 +157,9 @@ local function FileBinaryReadHandle(path)
 end
 
 local function FileWriteHandle(path, append)
+	if append and not vfs.exists(path) then
+		return nil
+	end
 	local closed = false
 	local File = vfs.newFile(path, append and "a" or "w")
 	if File == nil then return end
@@ -964,22 +967,6 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 
 		-- CC apis (BIOS completes api.)
 		term = {
-			native = {
-				clear = api.term.clear,
-				clearLine = api.term.clearLine,
-				getSize = api.term.getSize,
-				getCursorPos = api.term.getCursorPos,
-				setCursorPos = api.term.setCursorPos,
-				setTextColor = api.term.setTextColor,
-				setTextColour = api.term.setTextColor,
-				setBackgroundColor = api.term.setBackgroundColor,
-				setBackgroundColour = api.term.setBackgroundColor,
-				setCursorBlink = api.term.setCursorBlink,
-				scroll = api.term.scroll,
-				write = api.term.write,
-				isColor = api.term.isColor,
-				isColour = api.term.isColor,
-			},
 			clear = api.term.clear,
 			clearLine = api.term.clearLine,
 			getSize = api.term.getSize,

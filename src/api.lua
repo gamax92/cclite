@@ -231,9 +231,9 @@ function api.init(Computer)
 	function tmpapi.term.clear()
 		for y = 1, _conf.terminal_height do
 			for x = 1, _conf.terminal_width do
-				Screen.textB[y][x] = " "
-				Screen.backgroundColourB[y][x] = tmpapi.comp.bg
-				Screen.textColourB[y][x] = 1
+				Computer.textB[y][x] = " "
+				Computer.backgroundColourB[y][x] = tmpapi.comp.bg
+				Computer.textColourB[y][x] = 1
 			end
 		end
 		Screen.dirty = true
@@ -243,9 +243,9 @@ function api.init(Computer)
 			return
 		end
 		for x = 1, _conf.terminal_width do
-			Screen.textB[tmpapi.comp.cursorY][x] = " "
-			Screen.backgroundColourB[tmpapi.comp.cursorY][x] = tmpapi.comp.bg
-			Screen.textColourB[tmpapi.comp.cursorY][x] = 1
+			Computer.textB[tmpapi.comp.cursorY][x] = " "
+			Computer.backgroundColourB[tmpapi.comp.cursorY][x] = tmpapi.comp.bg
+			Computer.textColourB[tmpapi.comp.cursorY][x] = 1
 		end
 		Screen.dirty = true
 	end
@@ -274,9 +274,9 @@ function api.init(Computer)
 				if tmpapi.comp.cursorX + i - 1 > _conf.terminal_width then
 					break
 				end
-				Screen.textB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = char
-				Screen.textColourB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = tmpapi.comp.fg
-				Screen.backgroundColourB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = tmpapi.comp.bg
+				Computer.textB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = char
+				Computer.textColourB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = tmpapi.comp.fg
+				Computer.backgroundColourB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = tmpapi.comp.bg
 			end
 		end
 		tmpapi.comp.cursorX = tmpapi.comp.cursorX + #text
@@ -318,24 +318,24 @@ function api.init(Computer)
 				backgroundColourBuffer[y - n] = {}
 				textColourBuffer[y - n] = {}
 				for x = 1, _conf.terminal_width do
-					textBuffer[y - n][x] = Screen.textB[y][x]
-					backgroundColourBuffer[y - n][x] = Screen.backgroundColourB[y][x]
-					textColourBuffer[y - n][x] = Screen.textColourB[y][x]
+					textBuffer[y - n][x] = Computer.textB[y][x]
+					backgroundColourBuffer[y - n][x] = Computer.backgroundColourB[y][x]
+					textColourBuffer[y - n][x] = Computer.textColourB[y][x]
 				end
 			end
 		end
 		for y = 1, _conf.terminal_height do
 			if textBuffer[y] ~= nil then
 				for x = 1, _conf.terminal_width do
-					Screen.textB[y][x] = textBuffer[y][x]
-					Screen.backgroundColourB[y][x] = backgroundColourBuffer[y][x]
-					Screen.textColourB[y][x] = textColourBuffer[y][x]
+					Computer.textB[y][x] = textBuffer[y][x]
+					Computer.backgroundColourB[y][x] = backgroundColourBuffer[y][x]
+					Computer.textColourB[y][x] = textColourBuffer[y][x]
 				end
 			else
 				for x = 1, _conf.terminal_width do
-					Screen.textB[y][x] = " "
-					Screen.backgroundColourB[y][x] = tmpapi.comp.bg
-					Screen.textColourB[y][x] = 1 -- Don't need to bother setting text color
+					Computer.textB[y][x] = " "
+					Computer.backgroundColourB[y][x] = tmpapi.comp.bg
+					Computer.textColourB[y][x] = 1 -- Don't need to bother setting text color
 				end
 			end
 		end

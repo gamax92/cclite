@@ -25,13 +25,26 @@ function emu.newComputer()
 		},
 		lastFPS = love.timer.getTime(),
 		FPS = love.timer.getFPS(),
+		textB = {},
+		backgroundColourB = {},
+		textColourB = {},
 	}
+	for y = 1, _conf.terminal_height do
+		Computer.textB[y] = {}
+		Computer.backgroundColourB[y] = {}
+		Computer.textColourB[y] = {}
+		for x = 1, _conf.terminal_width do
+			Computer.textB[y][x] = " "
+			Computer.backgroundColourB[y][x] = 32768
+			Computer.textColourB[y][x] = 1
+		end
+	end
 
 	function Computer:start()
 		self.reboot = false
 		for y = 1, _conf.terminal_height do
-			local screen_textB = Screen.textB[y]
-			local screen_backgroundColourB = Screen.backgroundColourB[y]
+			local screen_textB = Computer.textB[y]
+			local screen_backgroundColourB = Computer.backgroundColourB[y]
 			for x = 1, _conf.terminal_width do
 				screen_textB[x] = " "
 				screen_backgroundColourB[x] = 32768
@@ -152,18 +165,10 @@ function emu.newComputer()
 			end
 		end
 		
-		-- Messages
-		for i = 1, 10 do
-			if now - Screen.messages[i][2] > 4 and Screen.messages[i][3] == true then
-				Screen.messages[i][3] = false
-				Screen.dirty = true
-			end
-		end
-		
 		-- Mouse
 		if self.mouse.isPressed then
-			local mouseX = love.mouse.getX()
-			local mouseY = love.mouse.getY()
+			local mouseX = love.mouse.getX() - Computer.frame.x
+			local mouseY = love.mouse.getY() - Computer.frame.y
 			local termMouseX = math_bind(math.floor((mouseX - _conf.terminal_guiScale) / Screen.pixelWidth) + 1, 1, _conf.terminal_width)
 			local termMouseY = math_bind(math.floor((mouseY - _conf.terminal_guiScale) / Screen.pixelHeight) + 1, 1, _conf.terminal_width)
 			if (termMouseX ~= self.mouse.lastTermX or termMouseY ~= self.mouse.lastTermY)
@@ -188,7 +193,7 @@ function emu.newComputer()
 	Computer.frame = loveframes.Create("frame")
 	Computer.frame.emu = Computer
 	Computer.frame:SetName("Advanced Computer")
-	Computer.frame:SetSize((_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 2, (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2) + 26)
+	Computer.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
 	Computer.frame:CenterWithinArea(0, 0, love.window.getDimensions())
 	Computer.frame.olddraw = Computer.frame.draw
 	function Computer.frame:draw()

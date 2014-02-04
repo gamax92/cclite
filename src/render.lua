@@ -40,9 +40,6 @@ COLOUR_CODE = {
 Screen = {
 	sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
 	sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
-	textB = {},
-	backgroundColourB = {},
-	textColourB = {},
 	font = nil,
 	pixelWidth = _conf.terminal_guiScale * 6,
 	pixelHeight = _conf.terminal_guiScale * 9,
@@ -53,16 +50,6 @@ Screen = {
 	messages = {},
 	setup = false,
 }
-for y = 1, _conf.terminal_height do
-	Screen.textB[y] = {}
-	Screen.backgroundColourB[y] = {}
-	Screen.textColourB[y] = {}
-	for x = 1, _conf.terminal_width do
-		Screen.textB[y][x] = " "
-		Screen.backgroundColourB[y][x] = 32768
-		Screen.textColourB[y][x] = 1
-	end
-end
 
 local glyphs = ""
 for i = 32,126 do
@@ -94,8 +81,8 @@ local decWidth = _conf.terminal_width - 1
 local decHeight = _conf.terminal_height - 1
 
 local lastColor = COLOUR_FULL_WHITE
-local function setColor(c)
-	if lastColor ~= c then
+local function setColor(c,f)
+	if lastColor ~= c or f then
 		lastColor = c
 		lsetCol(c)
 	end
@@ -127,11 +114,11 @@ function Screen:draw(Emulator)
 		ldrawRect("fill", 0, 0, self.sWidth, self.sHeight)
 	else
 		-- Render background color
-		setColor(COLOUR_CODE[self.backgroundColourB[1][1]])
+		setColor(COLOUR_CODE[Emulator.backgroundColourB[1][1]],true)
 		for y = 0, decHeight do
 			for x = 0, decWidth do
 
-				setColor(COLOUR_CODE[self.backgroundColourB[y + 1][x + 1]]) -- TODO COLOUR_CODE lookup might be too slow?
+				setColor(COLOUR_CODE[Emulator.backgroundColourB[y + 1][x + 1]]) -- TODO COLOUR_CODE lookup might be too slow?
 				ldrawRect("fill", x * self.pixelWidth + (x == 0 and 0 or _conf.terminal_guiScale), y * self.pixelHeight + (y == 0 and 0 or _conf.terminal_guiScale), self.pixelWidth + ((x == 0 or x == decWidth) and _conf.terminal_guiScale or 0), self.pixelHeight + ((y == 0 or y == decHeight) and _conf.terminal_guiScale or 0))
 
 			end
@@ -139,8 +126,8 @@ function Screen:draw(Emulator)
 
 		-- Render text
 		for y = 0, decHeight do
-			local self_textB = self.textB[y + 1]
-			local self_textColourB = self.textColourB[y + 1]
+			local self_textB = Emulator.textB[y + 1]
+			local self_textColourB = Emulator.textColourB[y + 1]
 			for x = 0, decWidth do
 				local text = self_textB[x + 1]
 				if text ~= " " and text ~= "\t" then

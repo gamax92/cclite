@@ -130,6 +130,7 @@ local function math_bind(val,lower,upper)
 end
 
 Emulator = {}
+Emulator.computers = {}
 
 local L2DScreenW, L2DScreenH = 800, 600
 function love.resize(w, h)
@@ -148,7 +149,10 @@ function love.load()
 	tween = require("libraries.third-party.tween")
 	require("libraries.loveframes")
 	
-	Computer = emu.newComputer()
+	Dummy = loveframes.Create("frame")
+	
+	table.insert(Emulator.computers,emu.newComputer())
+	table.insert(Emulator.computers,emu.newComputer())
 	
 	--[[
 	-- LoveFrames has no Menu Bar objects, emulate one.
@@ -195,41 +199,76 @@ function love.load()
 	
 	love.keyboard.setKeyRepeat(true)
 
-	Computer:start()
+	for k,v in pairs(Emulator.computers) do
+		v:start()
+	end
 end
 
 function love.mousereleased(x, y, _button)
 	loveframes.mousereleased(x, y, button)
-	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
-		Computer.mouse.isPressed = false
+	if x < 1 or x > L2DScreenW or y < 1 or y > L2DScreenH then -- Out of screen bounds
+		return
 	end
+	-- Get the active computer
+	local Computer,order = nil,-1
+	for k,v in pairs(Emulator.computers) do
+		if v.frame.draworder > order then
+			Computer = v
+			order = v.frame.draworder
+		end
+	end
+	Computer.mouse.isPressed = false
 end
 
 function love.mousepressed(x, y, button)
 	loveframes.mousepressed(x, y, button)
-	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
-		local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
-		local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
-
-		if button == "l" or button == "m" or button == "r" then
-			Computer.mouse.isPressed = true
-			Computer.mouse.lastTermX = termMouseX
-			Computer.mouse.lastTermY = termMouseY
-			if button == "l" then button = 1
-			elseif button == "m" then button = 3
-			elseif button == "r" then button = 2
-			end
-			table.insert(Computer.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
-		elseif button == "wu" then -- Scroll up
-			table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
-		elseif button == "wd" then -- Scroll down
-			table.insert(Computer.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
+	if x < 1 or x > L2DScreenW or y < 1 or y > L2DScreenH then -- Out of screen bounds
+		return
+	end
+	-- Get the active computer
+	local Computer,order = nil,-1
+	for k,v in pairs(Emulator.computers) do
+		if v.frame.draworder > order then
+			Computer = v
+			order = v.frame.draworder
 		end
+	end
+	-- Are we clicking on the computer?
+	if x <= Computer.frame.x or x >= Computer.frame.x + Screen.sWidth + 1 or y <= Computer.frame.y + 24 or y >= Computer.frame.y + Screen.sHeight + 25 then -- Not clicking on computer
+		return
+	end
+	-- Adjust for offset
+	x = x - Computer.frame.x
+	y = y - Computer.frame.y
+	local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
+	local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
+
+	if button == "l" or button == "m" or button == "r" then
+		Computer.mouse.isPressed = true
+		Computer.mouse.lastTermX = termMouseX
+		Computer.mouse.lastTermY = termMouseY
+		if button == "l" then button = 1
+		elseif button == "m" then button = 3
+		elseif button == "r" then button = 2
+		end
+		table.insert(Computer.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
+	elseif button == "wu" then -- Scroll up
+		table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
+	elseif button == "wd" then -- Scroll down
+		table.insert(Computer.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
 	end
 end
 
 function love.textinput(unicode)
 	loveframes.textinput(unicode)
+	-- Get the active computer
+	local Computer,order = nil,-1
+	for k,v in pairs(Emulator.computers) do
+		if v.frame.draworder > order then
+			Computer = v
+			order = v.frame.draworder
+		end
+	end
 	if not Computer.blockInput then
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and keys[unicode] ~= nil then
@@ -243,6 +282,14 @@ end
 
 function love.keypressed(key, isrepeat)
 	loveframes.keypressed(key, unicode)
+	-- Get the active computer
+	local Computer,order = nil,-1
+	for k,v in pairs(Emulator.computers) do
+		if v.frame.draworder > order then
+			Computer = v
+			order = v.frame.draworder
+		end
+	end
 	if love.keyboard.isDown("ctrl") and not isrepeat then
 		if Computer.actions.terminate == nil    and key == "t" then
 			Computer.actions.terminate = love.timer.getTime()
@@ -328,9 +375,21 @@ function love.run()
 		-- Update the FPS counter
 		love.timer.step()
 		dt = love.timer.getDelta()
+		local now = love.timer.getTime()
 
 		-- Call update and draw
-		Computer:update(dt)
+		for k,v in pairs(Emulator.computers) do
+			v:update(dt)
+		end
+
+		-- Messages
+		for i = 1, 10 do
+			if now - Screen.messages[i][2] > 4 and Screen.messages[i][3] == true then
+				Screen.messages[i][3] = false
+				Screen.dirty = true
+			end
+		end
+
 		if not love.window.isVisible() then Screen.dirty = false end
 		if true then --Screen.dirty then
 			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)

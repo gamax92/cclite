@@ -412,19 +412,28 @@ if _conf.enableAPI_cclite then
 	end
 end
 
+local function string_trim(s)
+	local from = s:match"^%s*()"
+	return from > #s and "" or s:match(".*%S", from)
+end
+
 if _conf.enableAPI_http then
 	api.http = {}
 	function api.http.request(sUrl, sParams)
 		if type(sUrl) ~= "string" then
 			error("String expected" .. (sUrl == nil and ", got nil" or ""),2)
 		end
-		if sUrl:sub(1,5) ~= "http:" and sUrl:sub(1,6) ~= "https:" then
+		local goodUrl = string_trim(sUrl)
+		if goodUrl:sub(1,4) == "ftp:" then
+			error("Not an HTTP URL",2)
+		end
+		if goodUrl:sub(1,5) ~= "http:" and goodUrl:sub(1,6) ~= "https:" then
 			error("Invalid URL",2)
 		end
 		local http = HttpRequest.new()
 		local method = sParams and "POST" or "GET"
 
-		http.open(method, sUrl, true)
+		http.open(method, goodUrl, true)
 
 		if method == "POST" then
 			http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")

@@ -424,7 +424,7 @@ if _conf.enableAPI_http then
 			error("String expected" .. (sUrl == nil and ", got nil" or ""),2)
 		end
 		local goodUrl = string_trim(sUrl)
-		if goodUrl:sub(1,4) == "ftp:" then
+		if goodUrl:sub(1,4) == "ftp:" or goodUrl:sub(1,5) == "file:" or goodUrl:sub(1,7) == "mailto:" then
 			error("Not an HTTP URL",2)
 		end
 		if goodUrl:sub(1,5) ~= "http:" and goodUrl:sub(1,6) ~= "https:" then

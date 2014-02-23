@@ -148,9 +148,6 @@ function love.load()
 
 	require("libraries.loveframes")
 	
-	table.insert(Emulator.computers,emu.newComputer())
-	table.insert(Emulator.computers,emu.newComputer())
-	
 	-- LoveFrames has no Menu Bar objects, emulate one.
 	menubar = loveframes.Create("panel")
 	menubar:SetSize(L2DScreenW, 25)
@@ -187,14 +184,18 @@ function love.load()
 		options = {
 			{"Something",function() end},
 			{},
-			{"Exit",function() end}
+			{"Exit",function() love.event.quit() end}
 		}
 	})
 	addMenuBtn({
 		name = "New",
 		options = {
 			{"Normal Computer",function() end},
-			{"Advanced Computer",function() end}
+			{"Advanced Computer",function()
+				local compu = emu.newComputer()
+				compu:start()
+				table.insert(Emulator.computers,compu)
+			end}
 		}
 	})
 	addMenuBtn({
@@ -231,10 +232,6 @@ function love.load()
 	vfs.mount("/lua/rom","/rom")
 	
 	love.keyboard.setKeyRepeat(true)
-
-	for k,v in pairs(Emulator.computers) do
-		v:start()
-	end
 end
 
 function love.mousereleased(x, y, button)

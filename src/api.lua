@@ -1,14 +1,23 @@
---[[
-	TODO
-	HTTP api may be broken?
-	including file handles.
-]]
 -- HELPER FUNCTIONS
 local function lines(str)
-	local t = {}
-	local function helper(line) table.insert(t, line) return "" end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	if t[#t] == "" then t[#t] = nil end
+    -- Eliminate bad cases...
+    if string.find(str,"\n",nil,true) == nil then
+        return { str }
+    end
+	str = str:gsub("\r\n","\n")
+	local t, nexti = {}, 1
+	local pos = 1
+	while true do
+		local st, sp = string.find(str, "\n", pos, true)
+		if not st then break end -- No more seperators found
+		if pos ~= st then
+			t[nexti] = str:sub(pos, st-1) -- Attach chars left of current divider
+			nexti = nexti + 1
+		end
+		pos = sp + 1 -- Jump past current divider
+	end
+	t[nexti] = str:sub(pos) -- Attach chars right of last divider
+	if t[#t] == "" then t[#t] = nil end -- Remove last line if empty.
 	return t
 end
 

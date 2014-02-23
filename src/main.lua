@@ -138,6 +138,47 @@ function love.resize(w, h)
 	menubar:SetSize(L2DScreenW, 25)
 end
 
+local smallfont = love.graphics.newFont(10)
+
+local function _ui_newComputerBox(name)
+	local prompt = loveframes.Create("frame")
+	prompt:SetName(name)
+	prompt:SetSize(243,61)
+	prompt:CenterWithinArea(0, 0, love.window.getDimensions())
+	prompt.prompt_text = loveframes.Create("text", prompt)
+	prompt.prompt_text:SetPos(8,34)
+	prompt.prompt_text:SetText("Enter computer id:")
+	prompt.input_box = loveframes.Create("textinput", prompt)
+	prompt.input_box:SetPos(130,30)
+	prompt.input_box:SetWidth(60)
+	prompt.input_box:SetText("0")
+	prompt.OK_btn = loveframes.Create("button", prompt)
+	prompt.OK_btn:SetPos(197,30)
+	prompt.OK_btn:SetSize(smallfont:getWidth("OK") + 24, 25)
+	prompt.OK_btn:SetText("OK")
+	return prompt
+end
+
+local function ui_newNormalComputer()
+	local prompt = _ui_newComputerBox("This doesn't work btw") -- "Create Normal Computer")
+	function prompt.OK_btn:OnClick()
+		local compu = emu.newComputer()
+		compu:start()
+		table.insert(Emulator.computers,compu)
+		prompt:Remove()
+	end
+end
+
+local function ui_newAdvancedComputer()
+	local prompt = _ui_newComputerBox("Create Advanced Computer")
+	function prompt.OK_btn:OnClick()
+		local compu = emu.newComputer()
+		compu:start()
+		table.insert(Emulator.computers,compu)
+		prompt:Remove()
+	end
+end
+
 function love.load()
 	if love.system.getOS() == "Android" then
 		love.keyboard.setTextInput(true)
@@ -153,13 +194,12 @@ function love.load()
 	menubar = loveframes.Create("panel")
 	menubar:SetSize(L2DScreenW, 25)
 	menubar.buttons = {}
-	local smallfont = love.graphics.newFont(10)
 	local offset = 0
 	
 	local function addMenuBtn(data)
 		local menu = {}
 		menu.menu = loveframes.Create("menu")
-		menu.menu:SetPos(offset,25)
+		menu.menu:SetPos(offset,24)
 		for i = 1,#data.options do
 			if data.options[i][1] == nil then
 				menu.menu:AddDivider()
@@ -173,8 +213,8 @@ function love.load()
 		menu.button:SetPos(offset,0)
 		menu.button:SetText(data.name)
 		menu.button:SetSize(smallfont:getWidth(data.name) + 14, 25)
-		function menu.button.OnClick(object)
-			object.menu:SetVisible(true)
+		function menu.button:OnClick()
+			self.menu:SetVisible(true)
 		end
 		table.insert(menubar.buttons, menu)
 		offset = offset + smallfont:getWidth(data.name) + 14
@@ -191,12 +231,8 @@ function love.load()
 	addMenuBtn({
 		name = "New",
 		options = {
-			{"Normal Computer",function() end},
-			{"Advanced Computer",function()
-				local compu = emu.newComputer()
-				compu:start()
-				table.insert(Emulator.computers,compu)
-			end}
+			{"Normal Computer",ui_newNormalComputer},
+			{"Advanced Computer",ui_newAdvancedComputer},
 		}
 	})
 	addMenuBtn({

@@ -152,6 +152,7 @@ local function _ui_newComputerBox(name)
 	prompt.input_box:SetPos(130,30)
 	prompt.input_box:SetWidth(60)
 	prompt.input_box:SetText("0")
+	prompt.input_box:SetUsable({"0","1","2","3","4","5","6","7,","8","9"})
 	prompt.OK_btn = loveframes.Create("button", prompt)
 	prompt.OK_btn:SetPos(197,30)
 	prompt.OK_btn:SetSize(smallfont:getWidth("OK") + 24, 25)
@@ -162,7 +163,7 @@ end
 local function ui_newNormalComputer()
 	local prompt = _ui_newComputerBox("This doesn't work btw") -- "Create Normal Computer")
 	function prompt.OK_btn:OnClick()
-		local compu = emu.newComputer()
+		local compu = emu.newComputer(false,tonumber(prompt.input_box:GetText()) or 0)
 		compu:start()
 		table.insert(Emulator.computers,compu)
 		prompt:Remove()
@@ -172,7 +173,7 @@ end
 local function ui_newAdvancedComputer()
 	local prompt = _ui_newComputerBox("Create Advanced Computer")
 	function prompt.OK_btn:OnClick()
-		local compu = emu.newComputer()
+		local compu = emu.newComputer(true,tonumber(prompt.input_box:GetText()) or 0)
 		compu:start()
 		table.insert(Emulator.computers,compu)
 		prompt:Remove()
@@ -264,9 +265,6 @@ function love.load()
 	if not love.filesystem.exists("data/") then
 		love.filesystem.createDirectory("data/") -- Make the user data folder
 	end
-
-	vfs.mount("/data","/")
-	vfs.mount("/lua/rom","/rom")
 	
 	love.keyboard.setKeyRepeat(true)
 end

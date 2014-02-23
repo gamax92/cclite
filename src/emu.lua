@@ -3,7 +3,7 @@ local function math_bind(val,lower,upper)
 end
 
 emu = {}
-function emu.newComputer()
+function emu.newComputer(color,id)
 	local Computer = {
 		running = false,
 		reboot = false, -- Tells update loop to start Emulator automatically
@@ -52,7 +52,7 @@ function emu.newComputer()
 			end
 		end
 		Screen.dirty = true
-		self.api = api.init(self)
+		self.api = api.init(self,color,id)
 
 		local fn, err = loadstring(love.filesystem.read("/lua/bios.lua"),"@bios")
 
@@ -190,6 +190,14 @@ function emu.newComputer()
 		end
 	end
 
+	if not love.filesystem.exists("data/" .. id .. "/") then
+		love.filesystem.createDirectory("data/" .. id .. "/")
+	end
+	
+	Computer.vfs = vfs.newtmpvfs()
+	Computer.vfs.mount("/data/" .. id,"/")
+	Computer.vfs.mount("/lua/rom","/rom")
+	
 	Computer.frame = loveframes.Create("frame")
 	Computer.frame.emu = Computer
 	Computer.frame:SetName("Advanced Computer")

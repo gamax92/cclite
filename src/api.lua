@@ -1,5 +1,5 @@
 api = {}
-function api.init(Computer)
+function api.init(Computer,color,id)
 	--[[
 		TODO
 		HTTP api may be broken?
@@ -99,11 +99,11 @@ function api.init(Computer)
 	end
 
 	local function FileReadHandle(path)
-		if not vfs.exists(path) then
+		if not Computer.vfs.exists(path) then
 			return nil
 		end
 		local contents = {}
-		for line in vfs.lines(path) do
+		for line in Computer.vfs.lines(path) do
 			table.insert(contents, line)
 		end
 		local closed = false
@@ -139,11 +139,11 @@ function api.init(Computer)
 	end
 
 	local function FileBinaryReadHandle(path)
-		if not vfs.exists(path) then
+		if not Computer.vfs.exists(path) then
 			return nil
 		end
 		local closed = false
-		local File = vfs.newFile(path, "r")
+		local File = Computer.vfs.newFile(path, "r")
 		if File == nil then return end
 		local handle = {
 			close = function()
@@ -160,7 +160,7 @@ function api.init(Computer)
 
 	local function FileWriteHandle(path, append)
 		local closed = false
-		local File = vfs.newFile(path, append and "a" or "w")
+		local File = Computer.vfs.newFile(path, append and "a" or "w")
 		if File == nil then return end
 		local handle = {
 			close = function()
@@ -184,7 +184,7 @@ function api.init(Computer)
 
 	local function FileBinaryWriteHandle(path, append)
 		local closed = false
-		local File = vfs.newFile(path, append and "a" or "w")
+		local File = Computer.vfs.newFile(path, append and "a" or "w")
 		if File == nil then return end
 		local handle = {
 			close = function()
@@ -594,10 +594,10 @@ function api.init(Computer)
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 		path = vfs.normalize(path)
-		if not vfs.exists(path) or not vfs.isDirectory(path) then
+		if not Computer.vfs.exists(path) or not Computer.vfs.isDirectory(path) then
 			error("Not a directory",2)
 		end
-		return vfs.getDirectoryItems(path)
+		return Computer.vfs.getDirectoryItems(path)
 	end
 	function tmpapi.fs.exists(path)
 		if type(path) ~= "string" then
@@ -606,7 +606,7 @@ function api.init(Computer)
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then return false end
 		path = vfs.normalize(path)
-		return vfs.exists(path)
+		return Computer.vfs.exists(path)
 	end
 	function tmpapi.fs.isDir(path)
 		if type(path) ~= "string" then
@@ -615,7 +615,7 @@ function api.init(Computer)
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then return false end
 		path = vfs.normalize(path)
-		return vfs.isDirectory(path)
+		return Computer.vfs.isDirectory(path)
 	end
 	function tmpapi.fs.isReadOnly(path)
 		if type(path) ~= "string" then
@@ -642,15 +642,15 @@ function api.init(Computer)
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 		path = vfs.normalize(path)
-		if vfs.exists(path) ~= true then
+		if Computer.vfs.exists(path) ~= true then
 			error("No such file",2)
 		end
 
-		if vfs.isDirectory(path) then
+		if Computer.vfs.isDirectory(path) then
 			return 0
 		end
 		
-		local size = vfs.getSize(path)
+		local size = Computer.vfs.getSize(path)
 		return math.ceil(size/512)*512
 	end
 
@@ -676,46 +676,46 @@ function api.init(Computer)
 		if path == "/rom" or path:sub(1, 5) == "/rom/" then
 			error("Access Denied",2)
 		end
-		if vfs.exists(path) and not vfs.isDirectory(path) then
+		if Computer.vfs.exists(path) and not Computer.vfs.isDirectory(path) then
 			error("File exists",2)
 		end
-		vfs.createDirectory(path)
+		Computer.vfs.createDirectory(path)
 	end
 
 	local function deltree(sFolder)
-		local tObjects = vfs.getDirectoryItems(sFolder)
+		local tObjects = Computer.vfs.getDirectoryItems(sFolder)
 
 		if tObjects then
 			for _, sObject in pairs(tObjects) do
 				local pObject =  sFolder.."/"..sObject
 
-				if vfs.isDirectory(pObject) then
+				if Computer.vfs.isDirectory(pObject) then
 					deltree(pObject)
 				end
-				vfs.remove(pObject)
+				Computer.vfs.remove(pObject)
 			end
 		end
-		return vfs.remove(sFolder)
+		return Computer.vfs.remove(sFolder)
 	end
 
 	local function copytree(sFolder, sToFolder)
-		if not vfs.isDirectory(sFolder) then
-			vfs.write(sToFolder, vfs.read(sFolder))
+		if not Computer.vfs.isDirectory(sFolder) then
+			Computer.vfs.write(sToFolder, Computer.vfs.read(sFolder))
 			return
 		end
-		vfs.createDirectory(sToFolder)
-		local tObjects = vfs.getDirectoryItems(sFolder)
+		Computer.vfs.createDirectory(sToFolder)
+		local tObjects = Computer.vfs.getDirectoryItems(sFolder)
 
 		if tObjects then
 			for _, sObject in pairs(tObjects) do
 				local pObject =  sFolder.."/"..sObject
 				local pToObject = sToFolder.."/"..sObject
 
-				if vfs.isDirectory(pObject) then
-					vfs.createDirectory(pToObject)
+				if Computer.vfs.isDirectory(pObject) then
+					Computer.vfs.createDirectory(pToObject)
 					copytree(pObject,pToObject)
 				else
-					vfs.write(pToObject, vfs.read(pObject))
+					Computer.vfs.write(pToObject, Computer.vfs.read(pObject))
 				end
 			end
 		end
@@ -735,10 +735,10 @@ function api.init(Computer)
 			toPath == "/rom" or toPath:sub(1, 5) == "/rom/" then
 			error("Access Denied",2)
 		end
-		if vfs.exists(fromPath) ~= true then
+		if Computer.vfs.exists(fromPath) ~= true then
 			error("No such file",2)
 		end
-		if vfs.exists(toPath) == true then
+		if Computer.vfs.exists(toPath) == true then
 			error("File exists",2)
 		end
 		if contains(fromPath, toPath) then
@@ -761,10 +761,10 @@ function api.init(Computer)
 		if toPath == "/rom" or toPath:sub(1, 5) == "/rom/" then
 			error("Access Denied",2)
 		end
-		if vfs.exists(fromPath) ~= true then
+		if Computer.vfs.exists(fromPath) ~= true then
 			error("No such file",2)
 		end
-		if vfs.exists(toPath) == true then
+		if Computer.vfs.exists(toPath) == true then
 			error("File exists",2)
 		end
 		if contains(fromPath, toPath) then
@@ -778,7 +778,7 @@ function api.init(Computer)
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 		path = vfs.normalize(path)
-		if path == "/rom" or path:sub(1, 5) == "/rom/" or vfs.isMountPath(path) then
+		if path == "/rom" or path:sub(1, 5) == "/rom/" or Computer.vfs.isMountPath(path) then
 			error("Access Denied",2)
 		end
 		deltree(path)
@@ -1014,8 +1014,8 @@ function api.init(Computer)
 		},
 		os = {
 			clock = tmpapi.os.clock,
-			getComputerID = function() return 0 end,
-			computerID = function() return 0 end,
+			getComputerID = function() return id end,
+			computerID = function() return id end,
 			setComputerLabel = tmpapi.os.setComputerLabel,
 			getComputerLabel = tmpapi.os.getComputerLabel,
 			computerLabel = tmpapi.os.getComputerLabel,

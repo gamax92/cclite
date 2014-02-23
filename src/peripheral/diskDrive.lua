@@ -41,7 +41,7 @@ function peripheral.base.diskDrive(sSide)
 			if content.type ~= "" then
 				table.insert(Computer.eventQueue, {"disk_eject", side})
 				if content.type == "data" then
-					vfs.unmount(content.mount)
+					Computer.vfs.unmount(content.mount)
 				end
 			end
 			content = {type = ""}
@@ -71,18 +71,18 @@ function peripheral.base.diskDrive(sSide)
 				if not love.filesystem.exists("disk/" .. nID) then
 					love.filesystem.createDirectory("disk/" .. nID)
 				end
-				if vfs.exists("/disk") then
+				if Computer.vfs.exists("/disk") then
 					i = 2
 					while true do
-						if not vfs.exists("/disk" .. i) then
-							vfs.mount("/disk/" .. nID, "/disk" .. i)
+						if not Computer.vfs.exists("/disk" .. i) then
+							Computer.vfs.mount("/disk/" .. nID, "/disk" .. i)
 							break
 						end
 						i = i + 1
 					end
 					content.mount = "disk" .. i
 				else
-					vfs.mount("/disk/" .. nID, "/disk")
+					Computer.vfs.mount("/disk/" .. nID, "/disk")
 					content.mount = "disk"
 				end
 				table.insert(Computer.eventQueue, {"disk", side})

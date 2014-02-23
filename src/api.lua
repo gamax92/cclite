@@ -206,7 +206,7 @@ function api.init(Computer)
 		return handle
 	end
 
-	tmpapi = {}
+	local tmpapi = {}
 	function tmpapi.loadstring(str, source)
 		source = source or "string"
 		if type(str) ~= "string" and type(str) ~= "number" then error("bad argument: string expected, got " .. type(str),2) end

@@ -149,8 +149,6 @@ function love.load()
 	tween = require("libraries.third-party.tween")
 	require("libraries.loveframes")
 	
-	Dummy = loveframes.Create("frame")
-	
 	table.insert(Emulator.computers,emu.newComputer())
 	table.insert(Emulator.computers,emu.newComputer())
 	

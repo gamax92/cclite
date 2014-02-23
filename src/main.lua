@@ -146,35 +146,70 @@ function love.load()
 		next_time = love.timer.getTime()
 	end
 
-	tween = require("libraries.third-party.tween")
 	require("libraries.loveframes")
 	
 	table.insert(Emulator.computers,emu.newComputer())
 	table.insert(Emulator.computers,emu.newComputer())
 	
-	--[[
 	-- LoveFrames has no Menu Bar objects, emulate one.
 	menubar = loveframes.Create("panel")
 	menubar:SetSize(L2DScreenW, 25)
 	menubar.buttons = {}
 	local smallfont = love.graphics.newFont(10)
 	local offset = 0
-	local menu = {}
-	menu.menu = loveframes.Create("menu")
-	menu.menu:SetPos(offset,25)
-	menu.menu:AddOption("Option", false, function() end)
-	menu.menu:SetVisible(false)
-	menu.button = loveframes.Create("button")
-	menu.button.menu = menu.menu
-	menu.button:SetPos(offset,0)
-	menu.button:SetText("Button")
-	menu.button:SetSize(smallfont:getWidth("Button") + 8, 25)
-	function menu.button.OnClick(object)
-		object.menu:SetVisible(true)
+	
+	local function addMenuBtn(data)
+		local menu = {}
+		menu.menu = loveframes.Create("menu")
+		menu.menu:SetPos(offset,25)
+		for i = 1,#data.options do
+			if data.options[i][1] == nil then
+				menu.menu:AddDivider()
+			else
+				menu.menu:AddOption(data.options[i][1], false, data.options[i][2])
+			end
+		end
+		menu.menu:SetVisible(false)
+		menu.button = loveframes.Create("button")
+		menu.button.menu = menu.menu
+		menu.button:SetPos(offset,0)
+		menu.button:SetText(data.name)
+		menu.button:SetSize(smallfont:getWidth(data.name) + 14, 25)
+		function menu.button.OnClick(object)
+			object.menu:SetVisible(true)
+		end
+		table.insert(menubar.buttons, menu)
+		offset = offset + smallfont:getWidth(data.name) + 14
 	end
-	table.insert(menubar.buttons, menu)
-	offset = offset + smallfont:getWidth("Button") + 8
-	--]]
+	
+	addMenuBtn({
+		name = "File",
+		options = {
+			{"Something",function() end},
+			{},
+			{"Exit",function() end}
+		}
+	})
+	addMenuBtn({
+		name = "New",
+		options = {
+			{"Normal Computer",function() end},
+			{"Advanced Computer",function() end}
+		}
+	})
+	addMenuBtn({
+		name = "Help",
+		options = {
+			{"Help",function() end},
+			{},
+			{"Forum topic",function() end},
+			{"CCLite Wiki",function() end},
+			{"Report a bug",function() end},
+			{"View the code",function() end},
+			{},
+			{"About",function() end}
+		}
+	})
 	
 	love.filesystem.setIdentity("ccemu")
 
@@ -202,7 +237,7 @@ function love.load()
 	end
 end
 
-function love.mousereleased(x, y, _button)
+function love.mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
 	if x < 1 or x > L2DScreenW or y < 1 or y > L2DScreenH then -- Out of screen bounds
 		return
@@ -215,6 +250,7 @@ function love.mousereleased(x, y, _button)
 			order = v.frame.draworder
 		end
 	end
+	if Computer == nil then return end
 	Computer.mouse.isPressed = false
 end
 
@@ -231,6 +267,7 @@ function love.mousepressed(x, y, button)
 			order = v.frame.draworder
 		end
 	end
+	if Computer == nil then return end
 	-- Are we clicking on the computer?
 	if x <= Computer.frame.x or x >= Computer.frame.x + Screen.sWidth + 1 or y <= Computer.frame.y + 24 or y >= Computer.frame.y + Screen.sHeight + 25 then -- Not clicking on computer
 		return
@@ -267,6 +304,7 @@ function love.textinput(unicode)
 			order = v.frame.draworder
 		end
 	end
+	if Computer == nil then return end
 	if not Computer.blockInput then
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and keys[unicode] ~= nil then
@@ -288,6 +326,7 @@ function love.keypressed(key, isrepeat)
 			order = v.frame.draworder
 		end
 	end
+	if Computer == nil then return end
 	if love.keyboard.isDown("ctrl") and not isrepeat then
 		if Computer.actions.terminate == nil    and key == "t" then
 			Computer.actions.terminate = love.timer.getTime()
@@ -374,11 +413,22 @@ function love.run()
 		love.timer.step()
 		dt = love.timer.getDelta()
 		local now = love.timer.getTime()
-
+		
 		-- Call update and draw
 		for k,v in pairs(Emulator.computers) do
 			v:update(dt)
 		end
+		
+		-- Cleanup dead computers.
+		local deloff = 0
+		for i = 1,#Emulator.computers do
+			if Emulator.computers[i-deloff].dead == true then
+				table.remove(Emulator.computers,i-deloff)
+				deloff = deloff + 1
+			end
+		end
+		
+		loveframes.update(dt)
 
 		-- Messages
 		for i = 1, 10 do

@@ -28,6 +28,7 @@ function emu.newComputer()
 		textB = {},
 		backgroundColourB = {},
 		textColourB = {},
+		dead = false,
 	}
 	for y = 1, _conf.terminal_height do
 		Computer.textB[y] = {}
@@ -115,8 +116,7 @@ function emu.newComputer()
 
 	function Computer:update(dt)
 		if _conf.lockfps > 0 then next_time = next_time + min_dt end
-		loveframes.update(dt)
-		tween.update(dt)
+
 		local now = love.timer.getTime()
 		if _conf.enableAPI_http then HttpRequest.checkRequests() end
 		if self.reboot then self:start() end
@@ -201,6 +201,15 @@ function emu.newComputer()
 		love.graphics.translate(self.x + 1, self.y + 25)
 		Screen:draw(self.emu)
 		love.graphics.translate(-self.x - 1, -self.y - 25)
+	end
+	local internals = Computer.frame:GetInternals()
+	for k,v in pairs(internals) do
+		if v.type == "closebutton" then
+			function v.OnClick()
+				Computer.frame:Remove()
+				Computer.dead = true
+			end
+		end
 	end
 	return Computer
 end

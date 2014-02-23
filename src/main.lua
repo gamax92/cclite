@@ -135,6 +135,7 @@ Emulator.computers = {}
 local L2DScreenW, L2DScreenH = 800, 600
 function love.resize(w, h)
 	L2DScreenW, L2DScreenH = w, h
+	menubar:SetSize(L2DScreenW, 25)
 end
 
 function love.load()

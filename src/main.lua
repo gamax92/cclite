@@ -169,6 +169,7 @@ local function ui_newNormalComputer()
 		table.insert(Emulator.computers,compu)
 		prompt:Remove()
 	end
+	prompt.input_box.OnEnter = prompt.OK_btn.OnClick
 end
 
 local function ui_newAdvancedComputer()
@@ -179,6 +180,7 @@ local function ui_newAdvancedComputer()
 		table.insert(Emulator.computers,compu)
 		prompt:Remove()
 	end
+	prompt.input_box.OnEnter = prompt.OK_btn.OnClick
 end
 
 function love.load()

@@ -147,7 +147,7 @@ function Screen:draw(Emulator)
 		end
 
 		-- Render cursor
-		if Emulator.api.comp.blink and self.showCursor then
+		if Emulator.api.comp.blink and self.showCursor and Emulator.api.comp.cursorX >= 1 and Emulator.api.comp.cursorX <= _conf.terminal_width and Emulator.api.comp.cursorY >= 1 and Emulator.api.comp.cursorY <= _conf.terminal_height then
 			setColor(COLOUR_CODE[Emulator.api.comp.fg])
 			lprint("_", (Emulator.api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (Emulator.api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 		end

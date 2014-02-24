@@ -153,6 +153,7 @@ local function _ui_newComputerBox(name)
 	prompt.input_box:SetWidth(60)
 	prompt.input_box:SetText("0")
 	prompt.input_box:SetUsable({"0","1","2","3","4","5","6","7,","8","9"})
+	prompt.input_box:SetFocus(true)
 	prompt.OK_btn = loveframes.Create("button", prompt)
 	prompt.OK_btn:SetPos(197,30)
 	prompt.OK_btn:SetSize(smallfont:getWidth("OK") + 24, 25)
@@ -275,14 +276,17 @@ function love.mousereleased(x, y, button)
 		return
 	end
 	-- Get the active computer
-	local Computer,order = nil,-1
-	for k,v in pairs(Emulator.computers) do
-		if v.frame.draworder > order then
-			Computer = v
-			order = v.frame.draworder
+	local Computer,order,highest = nil,-1,-1
+	for k,v in pairs(loveframes.base:GetChildren()) do
+		if v.draworder > highest then
+			highest = v.draworder
+			if v.emu ~= nil then
+				Computer = v.emu
+				order = v.draworder
+			end
 		end
 	end
-	if Computer == nil then return end
+	if Computer == nil or highest ~= order then return end
 	Computer.mouse.isPressed = false
 end
 
@@ -292,14 +296,17 @@ function love.mousepressed(x, y, button)
 		return
 	end
 	-- Get the active computer
-	local Computer,order = nil,-1
-	for k,v in pairs(Emulator.computers) do
-		if v.frame.draworder > order then
-			Computer = v
-			order = v.frame.draworder
+	local Computer,order,highest = nil,-1,-1
+	for k,v in pairs(loveframes.base:GetChildren()) do
+		if v.draworder > highest then
+			highest = v.draworder
+			if v.emu ~= nil then
+				Computer = v.emu
+				order = v.draworder
+			end
 		end
 	end
-	if Computer == nil then return end
+	if Computer == nil or highest ~= order then return end
 	-- Does the computer support mouse?
 	if not Computer.colored then return end
 	-- Are we clicking on the computer?
@@ -331,14 +338,17 @@ end
 function love.textinput(unicode)
 	loveframes.textinput(unicode)
 	-- Get the active computer
-	local Computer,order = nil,-1
-	for k,v in pairs(Emulator.computers) do
-		if v.frame.draworder > order then
-			Computer = v
-			order = v.frame.draworder
+	local Computer,order,highest = nil,-1,-1
+	for k,v in pairs(loveframes.base:GetChildren()) do
+		if v.draworder > highest then
+			highest = v.draworder
+			if v.emu ~= nil then
+				Computer = v.emu
+				order = v.draworder
+			end
 		end
 	end
-	if Computer == nil then return end
+	if Computer == nil or highest ~= order then return end
 	if not Computer.blockInput then
 		-- Hack to get around android bug
 		if love.system.getOS() == "Android" and keys[unicode] ~= nil then
@@ -353,14 +363,17 @@ end
 function love.keypressed(key, isrepeat)
 	loveframes.keypressed(key, unicode)
 	-- Get the active computer
-	local Computer,order = nil,-1
-	for k,v in pairs(Emulator.computers) do
-		if v.frame.draworder > order then
-			Computer = v
-			order = v.frame.draworder
+	local Computer,order,highest = nil,-1,-1
+	for k,v in pairs(loveframes.base:GetChildren()) do
+		if v.draworder > highest then
+			highest = v.draworder
+			if v.emu ~= nil then
+				Computer = v.emu
+				order = v.draworder
+			end
 		end
 	end
-	if Computer == nil then return end
+	if Computer == nil or highest ~= order then return end
 	if love.keyboard.isDown("ctrl") and not isrepeat then
 		if Computer.actions.terminate == nil    and key == "t" then
 			Computer.actions.terminate = love.timer.getTime()
@@ -398,9 +411,7 @@ function love.keypressed(key, isrepeat)
 end
 
 function love.keyreleased(key)
-
 	loveframes.keyreleased(key)
-	
 end
 
 function love.visible(see)

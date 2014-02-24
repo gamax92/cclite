@@ -161,7 +161,7 @@ local function _ui_newComputerBox(name)
 end
 
 local function ui_newNormalComputer()
-	local prompt = _ui_newComputerBox("This doesn't work btw") -- "Create Normal Computer")
+	local prompt = _ui_newComputerBox("Create Normal Computer")
 	function prompt.OK_btn:OnClick()
 		local compu = emu.newComputer(false,tonumber(prompt.input_box:GetText()) or 0)
 		compu:start()

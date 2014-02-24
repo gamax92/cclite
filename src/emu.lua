@@ -201,7 +201,7 @@ function emu.newComputer(color,id)
 	
 	Computer.frame = loveframes.Create("frame")
 	Computer.frame.emu = Computer
-	Computer.frame:SetName("Advanced Computer")
+	Computer.frame:SetName((color and "Advanced" or "Normal") .. " Computer")
 	Computer.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
 	Computer.frame:CenterWithinArea(0, 0, love.window.getDimensions())
 	Computer.frame.olddraw = Computer.frame.draw

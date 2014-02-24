@@ -300,6 +300,8 @@ function love.mousepressed(x, y, button)
 		end
 	end
 	if Computer == nil then return end
+	-- Does the computer support mouse?
+	if not Computer.colored then return end
 	-- Are we clicking on the computer?
 	if x <= Computer.frame.x or x >= Computer.frame.x + Screen.sWidth + 1 or y <= Computer.frame.y + 24 or y >= Computer.frame.y + Screen.sHeight + 25 then -- Not clicking on computer
 		return

@@ -288,6 +288,9 @@ function api.init(Computer,color,id)
 			error("Colour out of range",2)
 		end
 		num = 2^math.floor(math.log(num)/math.log(2))
+		if num ~= 1 and num ~= 32768 and not color then
+			error("Colour not supported",2)
+		end
 		tmpapi.comp.fg = num
 		Screen.dirty = true
 	end
@@ -297,10 +300,13 @@ function api.init(Computer,color,id)
 			error("Colour out of range",2)
 		end
 		num = 2^math.floor(math.log(num)/math.log(2))
+		if num ~= 1 and num ~= 32768 and not color then
+			error("Colour not supported",2)
+		end
 		tmpapi.comp.bg = num
 	end
 	function tmpapi.term.isColor()
-		return true
+		return color
 	end
 	function tmpapi.term.setCursorBlink(bool)
 		if type(bool) ~= "boolean" then error("Expected boolean",2) end

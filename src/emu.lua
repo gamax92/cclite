@@ -5,6 +5,7 @@ end
 emu = {}
 function emu.newComputer(color,id)
 	local Computer = {
+		colored = color,
 		running = false,
 		reboot = false, -- Tells update loop to start Emulator automatically
 		blockInput = false,

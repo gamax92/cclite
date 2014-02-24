@@ -1,5 +1,4 @@
-
-COLOUR_RGB = {
+local COLOUR_RGB = {
 	WHITE = {240, 240, 240},
 	ORANGE = {242, 178, 51},
 	MAGENTA = {229, 127, 216},
@@ -15,10 +14,10 @@ COLOUR_RGB = {
 	BROWN = {127, 102, 76},
 	GREEN = {87, 166, 78},
 	RED = {204, 76, 76},
-	BLACK = {0, 0, 0},
+	BLACK = {25, 25, 25},
 }
 
-COLOUR_CODE = {
+local COLOUR_CODE = {
 	[1] = COLOUR_RGB.WHITE,
 	[2] = COLOUR_RGB.ORANGE,
 	[4] =  COLOUR_RGB.MAGENTA,
@@ -36,6 +35,12 @@ COLOUR_CODE = {
 	[16384] = COLOUR_RGB.RED,
 	[32768] = COLOUR_RGB.BLACK,
 }
+
+local COLOUR_CODE_BG = {}
+for k,v in pairs(COLOUR_CODE) do
+	COLOUR_CODE_BG[k] = v
+end
+COLOUR_CODE_BG[32768] = {0,0,0}
 
 Screen = {
 	sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
@@ -114,11 +119,11 @@ function Screen:draw(Emulator)
 		ldrawRect("fill", 0, 0, self.sWidth, self.sHeight)
 	else
 		-- Render background color
-		setColor(COLOUR_CODE[Emulator.backgroundColourB[1][1]],true)
+		setColor(COLOUR_CODE_BG[Emulator.backgroundColourB[1][1]],true)
 		for y = 0, decHeight do
 			for x = 0, decWidth do
 
-				setColor(COLOUR_CODE[Emulator.backgroundColourB[y + 1][x + 1]]) -- TODO COLOUR_CODE lookup might be too slow?
+				setColor(COLOUR_CODE_BG[Emulator.backgroundColourB[y + 1][x + 1]]) -- TODO COLOUR_CODE lookup might be too slow?
 				ldrawRect("fill", x * self.pixelWidth + (x == 0 and 0 or _conf.terminal_guiScale), y * self.pixelHeight + (y == 0 and 0 or _conf.terminal_guiScale), self.pixelWidth + ((x == 0 or x == decWidth) and _conf.terminal_guiScale or 0), self.pixelHeight + ((y == 0 or y == decHeight) and _conf.terminal_guiScale or 0))
 
 			end

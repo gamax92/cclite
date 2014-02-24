@@ -168,8 +168,8 @@ function emu.newComputer(color,id)
 		
 		-- Mouse
 		if self.mouse.isPressed then
-			local mouseX = love.mouse.getX() - Computer.frame.x
-			local mouseY = love.mouse.getY() - Computer.frame.y
+			local mouseX = love.mouse.getX() - Computer.frame.x - 1
+			local mouseY = love.mouse.getY() - Computer.frame.y - 25
 			local termMouseX = math_bind(math.floor((mouseX - _conf.terminal_guiScale) / Screen.pixelWidth) + 1, 1, _conf.terminal_width)
 			local termMouseY = math_bind(math.floor((mouseY - _conf.terminal_guiScale) / Screen.pixelHeight) + 1, 1, _conf.terminal_width)
 			if (termMouseX ~= self.mouse.lastTermX or termMouseY ~= self.mouse.lastTermY)

@@ -314,8 +314,8 @@ function love.mousepressed(x, y, button)
 		return
 	end
 	-- Adjust for offset
-	x = x - Computer.frame.x
-	y = y - Computer.frame.y
+	x = x - Computer.frame.x - 1
+	y = y - Computer.frame.y - 25
 	local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
 	local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
 

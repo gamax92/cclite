@@ -233,10 +233,39 @@ function love.load()
 	ChatAllowedCharacters[96] = nil
 
 	if not love.filesystem.exists("data/") then
-		love.filesystem.createDirectory("data/") -- Make the user data folder
+		love.filesystem.createDirectory("data/")
 	end
 
+	if not love.filesystem.exists("data/0/") then
+		love.filesystem.createDirectory("data/0/") -- Make the user data folder
+	end
+	
+	local cache0
+	if love.filesystem.exists("data/0/") and not love.filesystem.isDirectory("data/0/") then
+		print("Backing up /0")
+		cache0 = love.filesystem.read("/data/0")
+		love.filesystem.remove("/data/0")
+		love.filesystem.createDirectory("data/0/")
+	end
+	
 	vfs.mount("/data","/")
+	-- Migrate to new folder.
+	local list = vfs.getDirectoryItems("/")
+	for k,v in pairs(list) do
+		if tonumber(v) == nil or tonumber(v) < 0 or tonumber(v) ~= math.floor(tonumber(v)) or v ~= tostring(tonumber(v)) then
+			print("Migrating /" .. v)
+			api._copytree("/" .. v, "/0/" .. v)
+			api._deltree("/" .. v)
+		end
+	end
+	vfs.unmount("/")
+	
+	if cache0 ~= nil then
+		print("Restoring /0")
+		love.filesystem.write("/data/0/0",cache0)
+	end
+	
+	vfs.mount("/data/0","/")
 	vfs.mount("/lua/rom","/rom")
 	
 	love.keyboard.setKeyRepeat(true)

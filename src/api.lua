@@ -716,6 +716,7 @@ local function deltree(sFolder)
 	end
 	return vfs.remove(sFolder)
 end
+api._deltree = deltree
 
 local function copytree(sFolder, sToFolder)
 	if not vfs.isDirectory(sFolder) then
@@ -739,6 +740,7 @@ local function copytree(sFolder, sToFolder)
 		end
 	end
 end
+api._copytree = copytree
 
 function api.fs.move(fromPath, toPath)
 	if type(fromPath) ~= "string" or type(toPath) ~= "string" then

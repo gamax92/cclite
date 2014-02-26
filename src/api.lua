@@ -284,8 +284,9 @@ end
 function api.term.getCursorPos()
 	return api.comp.cursorX, api.comp.cursorY
 end
-function api.term.setCursorPos(x, y)
-	if type(x) ~= "number" or type(y) ~= "number" then error("Expected number, number",2) end
+function api.term.setCursorPos(...)
+	local x, y = ...
+	if type(x) ~= "number" or type(y) ~= "number" or select("#",...) ~= 2 then error("Expected number, number",2) end
 	api.comp.cursorX = math.floor(x)
 	api.comp.cursorY = math.floor(y)
 	Screen.dirty = true
@@ -311,8 +312,9 @@ function api.term.write(text)
 	api.comp.cursorX = api.comp.cursorX + #text
 	Screen.dirty = true
 end
-function api.term.setTextColor(num)
-	if type(num) ~= "number" then error("Expected number",2) end
+function api.term.setTextColor(...)
+	local num = ...
+	if type(num) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 	if num < 1 or num >= 65536 then
 		error("Colour out of range",2)
 	end
@@ -320,8 +322,9 @@ function api.term.setTextColor(num)
 	api.comp.fg = num
 	Screen.dirty = true
 end
-function api.term.setBackgroundColor(num)
-	if type(num) ~= "number" then error("Expected number",2) end
+function api.term.setBackgroundColor(...)
+	local num = ...
+	if type(num) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 	if num < 1 or num >= 65536 then
 		error("Colour out of range",2)
 	end
@@ -331,13 +334,15 @@ end
 function api.term.isColor()
 	return true
 end
-function api.term.setCursorBlink(bool)
-	if type(bool) ~= "boolean" then error("Expected boolean",2) end
+function api.term.setCursorBlink(...)
+	local bool = ...
+	if type(bool) ~= "boolean" or select("#",...) ~= 1 then error("Expected boolean",2) end
 	api.comp.blink = bool
 	Screen.dirty = true
 end
-function api.term.scroll(n)
-	if type(n) ~= "number" then error("Expected number",2) end
+function api.term.scroll(...)
+	local n = ...
+	if type(n) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 	local textBuffer = {}
 	local backgroundColourBuffer = {}
 	local textColourBuffer = {}

@@ -217,6 +217,25 @@ local function FileBinaryWriteHandle(path, append)
 end
 
 api = {}
+local _tostring_DB = {}
+local function addToDB(entry)
+	for k,v in pairs(entry) do
+		if tostring(v):find("function: builtin#") ~= nil then
+			_tostring_DB[v] = k
+		end
+	end
+end
+addToDB(_G)
+addToDB(math)
+addToDB(string)
+addToDB(table)
+addToDB(coroutine)
+function api.tostring(...)
+	if select("#",...) == 0 then error("bad argument #1: value expected",2) end
+	local something = ...
+	if something == nil then return "nil" end
+	return _tostring_DB[something] or tostring(something)
+end
 function api.loadstring(str, source)
 	source = source or "string"
 	if type(str) ~= "string" and type(str) ~= "number" then error("bad argument: string expected, got " .. type(str),2) end
@@ -961,7 +980,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 	}
 	api.env = {
 		_VERSION = "Luaj-jse 2.0.3",
-		tostring = tostring,
+		tostring = api.tostring,
 		tonumber = tonumber,
 		unpack = unpack,
 		getfenv = getfenv,

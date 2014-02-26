@@ -1059,6 +1059,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 		ipairs = ipairs,
 		pairs = pairs,
 		pcall = pcall,
+		xpcall = xpcall,
 		loadstring = api.loadstring,
 		math = tablecopy(math),
 		string = tablecopy(string),

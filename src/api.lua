@@ -567,8 +567,9 @@ function api.peripheral.getNames()
 end
 
 api.fs = {}
-function api.fs.combine(basePath, localPath)
-	if type(basePath) ~= "string" or type(localPath) ~= "string" then
+function api.fs.combine(...)
+	local basePath, localPath = ...
+	if type(basePath) ~= "string" or type(localPath) ~= "string" or select("#",...) ~= 2 then
 		error("Expected string, string",2)
 	end
 	local path = ("/" .. basePath .. "/" .. localPath):gsub("\\", "/")
@@ -611,8 +612,9 @@ local function contains(pathA, pathB)
 	end
 end
 
-function api.fs.open(path, mode)
-	if type(path) ~= "string" or type(mode) ~= "string" then
+function api.fs.open(...)
+	local path, mode = ...
+	if type(path) ~= "string" or type(mode) ~= "string" or select("#",...) ~= 2 then
 		error("Expected string, string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
@@ -630,8 +632,9 @@ function api.fs.open(path, mode)
 		error("Unsupported mode",2)
 	end
 end
-function api.fs.list(path)
-	if type(path) ~= "string" then
+function api.fs.list(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
@@ -642,8 +645,9 @@ function api.fs.list(path)
 	end
 	return vfs.getDirectoryItems(path)
 end
-function api.fs.exists(path)
-	if type(path) ~= "string" then
+function api.fs.exists(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
@@ -651,8 +655,9 @@ function api.fs.exists(path)
 	path = vfs.normalize(path)
 	return vfs.exists(path)
 end
-function api.fs.isDir(path)
-	if type(path) ~= "string" then
+function api.fs.isDir(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
@@ -660,15 +665,17 @@ function api.fs.isDir(path)
 	path = vfs.normalize(path)
 	return vfs.isDirectory(path)
 end
-function api.fs.isReadOnly(path)
-	if type(path) ~= "string" then
+function api.fs.isReadOnly(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	path = vfs.normalize(path)
 	return path == "/rom" or path:sub(1, 5) == "/rom/"
 end
-function api.fs.getName(path)
-	if type(path) ~= "string" then
+function api.fs.getName(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	path = vfs.normalize(path)
@@ -678,8 +685,22 @@ function api.fs.getName(path)
 	local fpath, name, ext = path:match("(.-)([^\\/]-%.?([^%.\\/]*))$")
 	return name
 end
-function api.fs.getSize(path)
-	if type(path) ~= "string" then
+function api.fs.getDrive(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
+		error("Expected string",2)
+	end
+	local testpath = api.fs.combine("data/", path)
+	if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
+	path = vfs.normalize(path)
+	if path == "/rom" or path:sub(1, 5) == "/rom/" then
+		return "rom"
+	end
+	return "hdd"
+end
+function api.fs.getSize(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
@@ -697,20 +718,23 @@ function api.fs.getSize(path)
 	return math.ceil(size/512)*512
 end
 
-function api.fs.getFreeSpace(path)
-	if type(path) ~= "string" then
+function api.fs.getFreeSpace(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
 	if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
+	path = vfs.normalize(path)
 	if path == "/rom" or path:sub(1, 5) == "/rom/" then
 		return 0
 	end
 	return math.huge
 end
 
-function api.fs.makeDir(path) -- All write functions are within data/
-	if type(path) ~= "string" then
+function api.fs.makeDir(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
 		error("Expected string",2)
 	end
 	local testpath = api.fs.combine("data/", path)
@@ -766,8 +790,9 @@ local function copytree(sFolder, sToFolder)
 end
 api._copytree = copytree
 
-function api.fs.move(fromPath, toPath)
-	if type(fromPath) ~= "string" or type(toPath) ~= "string" then
+function api.fs.move(...)
+	local fromPath, toPath = ...
+	if type(fromPath) ~= "string" or type(toPath) ~= "string" or select("#",...) ~= 2 then
 		error("Expected string, string",2)
 	end
 	local testpath = api.fs.combine("data/", fromPath)
@@ -793,8 +818,9 @@ function api.fs.move(fromPath, toPath)
 	deltree(fromPath)
 end
 
-function api.fs.copy(fromPath, toPath)
-	if type(fromPath) ~= "string" or type(toPath) ~= "string" then
+function api.fs.copy(...)
+	local fromPath, toPath = ...
+	if type(fromPath) ~= "string" or type(toPath) ~= "string" or select("#",...) ~= 2 then
 		error("Expected string, string",2)
 	end
 	local testpath = api.fs.combine("data/", fromPath)
@@ -818,8 +844,11 @@ function api.fs.copy(fromPath, toPath)
 	copytree(fromPath, toPath)
 end
 
-function api.fs.delete(path)
-	if type(path) ~= "string" then error("Expected string",2) end
+function api.fs.delete(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
+		error("Expected string",2)
+	end
 	local testpath = api.fs.combine("data/", path)
 	if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 	path = vfs.normalize(path)
@@ -1033,7 +1062,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			isDir = api.fs.isDir,
 			isReadOnly = api.fs.isReadOnly,
 			getName = api.fs.getName,
-			getDrive = function(path) return nil end, -- Dummy function
+			getDrive = api.fs.getDrive,
 			getSize = api.fs.getSize,
 			getFreeSpace = api.fs.getFreeSpace,
 			makeDir = api.fs.makeDir,

@@ -236,6 +236,31 @@ function api.tostring(...)
 	if something == nil then return "nil" end
 	return _tostring_DB[something] or tostring(something)
 end
+function api.tonumber(...)
+	local str, base = ...
+	if select("#",...) < 1 then
+		error("bad argument #1: value expected",2)
+	end
+	base = base or 10
+	if (type(base) ~= "number" and type(base) ~= "string") or (type(base) == "string" and tonumber(base) == nil) then
+		if type(base) == "string" then
+			error("bad argument: number expected, got " .. type(base),2)
+		end
+		error("bad argument: int expected, got " .. type(base),2)
+	end
+	base = math.floor(tonumber(base))
+	if base < 2 or base >= 37 then
+		error("bad argument #2: base out of range",2)
+	end
+	if base ~= 10 and (type(str) ~= "number" and type(str) ~= "string") then
+		error("bad argument: string expected, got " .. type(str),2)
+	end
+	-- Fix some strings.
+	if type(str) == "string" and base >= 11 then -- TODO: If string has non Odd elements, base must be 12 or higher.
+		str = str:gsub("%[","4"):gsub("\\","5"):gsub("]","6"):gsub("%^","7"):gsub("_","8"):gsub(string.char(96),"9")
+	end
+	return tonumber(str,base)
+end
 function api.loadstring(str, source)
 	source = source or "string"
 	if type(str) ~= "string" and type(str) ~= "number" then error("bad argument: string expected, got " .. type(str),2) end
@@ -1017,7 +1042,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 	api.env = {
 		_VERSION = "Luaj-jse 2.0.3",
 		tostring = api.tostring,
-		tonumber = tonumber,
+		tonumber = api.tonumber,
 		unpack = unpack,
 		getfenv = getfenv,
 		setfenv = setfenv,

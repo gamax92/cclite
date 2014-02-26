@@ -507,16 +507,18 @@ function api.os.queueEvent(event, ...)
 	if type(event) ~= "string" then error("Expected string",2) end
 	table.insert(Emulator.eventQueue, {event, ...})
 end
-function api.os.startTimer(nTimeout)
-	if type(nTimeout) ~= "number" then error("Expected number",2) end
+function api.os.startTimer(...)
+	local nTimeout = ...
+	if type(nTimeout) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 	nTimeout = math.ceil(nTimeout*20)/20
 	if nTimeout < 0.05 then nTimeout = 0.05 end
 	Emulator.actions.lastTimer = Emulator.actions.lastTimer + 1
 	Emulator.actions.timers[Emulator.actions.lastTimer] = math.floor(love.timer.getTime()*20)/20 + nTimeout
 	return Emulator.actions.lastTimer
 end
-function api.os.setAlarm(nTime)
-	if type(nTime) ~= "number" then error("Expected number",2) end
+function api.os.setAlarm(...)
+	local nTime = ...
+	if type(nTime) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 	if nTime < 0 or nTime > 24 then
 		error("Number out of range: " .. tostring(nTime))
 	end

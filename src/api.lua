@@ -1,16 +1,25 @@
 api = {}
 function api.init(Computer,color,id)
-	--[[
-		TODO
-		HTTP api may be broken?
-		including file handles.
-	]]
 	-- HELPER FUNCTIONS
 	local function lines(str)
-		local t = {}
-		local function helper(line) table.insert(t, line) return "" end
-		helper((str:gsub("(.-)\r?\n", helper)))
-		if t[#t] == "" then t[#t] = nil end
+		-- Eliminate bad cases...
+		if string.find(str,"\n",nil,true) == nil then
+			return { str }
+		end
+		str = str:gsub("\r\n","\n")
+		local t, nexti = {}, 1
+		local pos = 1
+		while true do
+			local st, sp = string.find(str, "\n", pos, true)
+			if not st then break end -- No more seperators found
+			if pos ~= st then
+				t[nexti] = str:sub(pos, st-1) -- Attach chars left of current divider
+				nexti = nexti + 1
+			end
+			pos = sp + 1 -- Jump past current divider
+		end
+		t[nexti] = str:sub(pos) -- Attach chars right of last divider
+		if t[#t] == "" then t[#t] = nil end -- Remove last line if empty.
 		return t
 	end
 
@@ -159,6 +168,9 @@ function api.init(Computer,color,id)
 	end
 
 	local function FileWriteHandle(path, append)
+		if append and not Computer.vfs.exists(path) then
+			return nil
+		end
 		local closed = false
 		local File = Computer.vfs.newFile(path, append and "a" or "w")
 		if File == nil then return end
@@ -207,6 +219,50 @@ function api.init(Computer,color,id)
 	end
 
 	local tmpapi = {}
+	local _tostring_DB = {}
+	local function addToDB(entry)
+		for k,v in pairs(entry) do
+			if tostring(v):find("function: builtin#") ~= nil then
+				_tostring_DB[v] = k
+			end
+		end
+	end
+	addToDB(_G)
+	addToDB(math)
+	addToDB(string)
+	addToDB(table)
+	addToDB(coroutine)
+	function tmpapi.tostring(...)
+		if select("#",...) == 0 then error("bad argument #1: value expected",2) end
+		local something = ...
+		if something == nil then return "nil" end
+		return _tostring_DB[something] or tostring(something)
+	end
+	function tmpapi.tonumber(...)
+		local str, base = ...
+		if select("#",...) < 1 then
+			error("bad argument #1: value expected",2)
+		end
+		base = base or 10
+		if (type(base) ~= "number" and type(base) ~= "string") or (type(base) == "string" and tonumber(base) == nil) then
+			if type(base) == "string" then
+				error("bad argument: number expected, got " .. type(base),2)
+			end
+			error("bad argument: int expected, got " .. type(base),2)
+		end
+		base = math.floor(tonumber(base))
+		if base < 2 or base >= 37 then
+			error("bad argument #2: base out of range",2)
+		end
+		if base ~= 10 and (type(str) ~= "number" and type(str) ~= "string") then
+			error("bad argument: string expected, got " .. type(str),2)
+		end
+		-- Fix some strings.
+		if type(str) == "string" and base >= 11 then -- TODO: If string has non Odd elements, base must be 12 or higher.
+			str = str:gsub("%[","4"):gsub("\\","5"):gsub("]","6"):gsub("%^","7"):gsub("_","8"):gsub(string.char(96),"9")
+		end
+		return tonumber(str,base)
+	end
 	function tmpapi.loadstring(str, source)
 		source = source or "string"
 		if type(str) ~= "string" and type(str) ~= "number" then error("bad argument: string expected, got " .. type(str),2) end
@@ -255,8 +311,9 @@ function api.init(Computer,color,id)
 	function tmpapi.term.getCursorPos()
 		return tmpapi.comp.cursorX, tmpapi.comp.cursorY
 	end
-	function tmpapi.term.setCursorPos(x, y)
-		if type(x) ~= "number" or type(y) ~= "number" then error("Expected number, number",2) end
+	function tmpapi.term.setCursorPos(...)
+		local x, y = ...
+		if type(x) ~= "number" or type(y) ~= "number" or select("#",...) ~= 2 then error("Expected number, number",2) end
 		tmpapi.comp.cursorX = math.floor(x)
 		tmpapi.comp.cursorY = math.floor(y)
 		Screen.dirty = true
@@ -282,8 +339,9 @@ function api.init(Computer,color,id)
 		tmpapi.comp.cursorX = tmpapi.comp.cursorX + #text
 		Screen.dirty = true
 	end
-	function tmpapi.term.setTextColor(num)
-		if type(num) ~= "number" then error("Expected number",2) end
+	function tmpapi.term.setTextColor(...)
+		local num = ...
+		if type(num) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 		if num < 1 or num >= 65536 then
 			error("Colour out of range",2)
 		end
@@ -294,8 +352,9 @@ function api.init(Computer,color,id)
 		tmpapi.comp.fg = num
 		Screen.dirty = true
 	end
-	function tmpapi.term.setBackgroundColor(num)
-		if type(num) ~= "number" then error("Expected number",2) end
+	function tmpapi.term.setBackgroundColor(...)
+		local num = ...
+		if type(num) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 		if num < 1 or num >= 65536 then
 			error("Colour out of range",2)
 		end
@@ -313,8 +372,9 @@ function api.init(Computer,color,id)
 		tmpapi.comp.blink = bool
 		Screen.dirty = true
 	end
-	function tmpapi.term.scroll(n)
-		if type(n) ~= "number" then error("Expected number",2) end
+	function tmpapi.term.scroll(...)
+		local n = ...
+		if type(n) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 		local textBuffer = {}
 		local backgroundColourBuffer = {}
 		local textColourBuffer = {}
@@ -417,19 +477,28 @@ function api.init(Computer,color,id)
 		end
 	end
 
+	local function string_trim(s)
+		local from = s:match"^%s*()"
+		return from > #s and "" or s:match(".*%S", from)
+	end
+	
 	if _conf.enableAPI_http then
 		tmpapi.http = {}
 		function tmpapi.http.request(sUrl, sParams)
 			if type(sUrl) ~= "string" then
 				error("String expected" .. (sUrl == nil and ", got nil" or ""),2)
 			end
-			if sUrl:sub(1,5) ~= "http:" and sUrl:sub(1,6) ~= "https:" then
+			local goodUrl = string_trim(sUrl)
+			if goodUrl:sub(1,4) == "ftp:" or goodUrl:sub(1,5) == "file:" or goodUrl:sub(1,7) == "mailto:" then
+				error("Not an HTTP URL",2)
+			end
+			if goodUrl:sub(1,5) ~= "http:" and goodUrl:sub(1,6) ~= "https:" then
 				error("Invalid URL",2)
 			end
 			local http = HttpRequest.new()
 			local method = sParams and "POST" or "GET"
 
-			http.open(method, sUrl, true)
+			http.open(method, goodUrl, true)
 
 			if method == "POST" then
 				http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
@@ -470,16 +539,18 @@ function api.init(Computer,color,id)
 		if type(event) ~= "string" then error("Expected string",2) end
 		table.insert(Computer.eventQueue, {event, ...})
 	end
-	function tmpapi.os.startTimer(nTimeout)
-		if type(nTimeout) ~= "number" then error("Expected number",2) end
+	function tmpapi.os.startTimer(...)
+		local nTimeout = ...
+		if type(nTimeout) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 		nTimeout = math.ceil(nTimeout*20)/20
 		if nTimeout < 0.05 then nTimeout = 0.05 end
 		Computer.actions.lastTimer = Computer.actions.lastTimer + 1
 		Computer.actions.timers[Computer.actions.lastTimer] = math.floor(love.timer.getTime()*20)/20 + nTimeout
 		return Computer.actions.lastTimer
 	end
-	function tmpapi.os.setAlarm(nTime)
-		if type(nTime) ~= "number" then error("Expected number",2) end
+	function tmpapi.os.setAlarm(...)
+		local nTime = ...
+		if type(nTime) ~= "number" or select("#",...) ~= 1 then error("Expected number",2) end
 		if nTime < 0 or nTime > 24 then
 			error("Number out of range: " .. tostring(nTime))
 		end
@@ -530,8 +601,9 @@ function api.init(Computer,color,id)
 	end
 
 	tmpapi.fs = {}
-	function tmpapi.fs.combine(basePath, localPath)
-		if type(basePath) ~= "string" or type(localPath) ~= "string" then
+	function tmpapi.fs.combine(...)
+		local basePath, localPath = ...
+		if type(basePath) ~= "string" or type(localPath) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
 		local path = ("/" .. basePath .. "/" .. localPath):gsub("\\", "/")
@@ -574,8 +646,9 @@ function api.init(Computer,color,id)
 		end
 	end
 
-	function tmpapi.fs.open(path, mode)
-		if type(path) ~= "string" or type(mode) ~= "string" then
+	function tmpapi.fs.open(...)
+		local path, mode = ...
+		if type(path) ~= "string" or type(mode) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
@@ -593,8 +666,9 @@ function api.init(Computer,color,id)
 			error("Unsupported mode",2)
 		end
 	end
-	function tmpapi.fs.list(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.list(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
@@ -605,8 +679,9 @@ function api.init(Computer,color,id)
 		end
 		return Computer.vfs.getDirectoryItems(path)
 	end
-	function tmpapi.fs.exists(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.exists(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
@@ -614,8 +689,9 @@ function api.init(Computer,color,id)
 		path = vfs.normalize(path)
 		return Computer.vfs.exists(path)
 	end
-	function tmpapi.fs.isDir(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.isDir(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
@@ -623,15 +699,17 @@ function api.init(Computer,color,id)
 		path = vfs.normalize(path)
 		return Computer.vfs.isDirectory(path)
 	end
-	function tmpapi.fs.isReadOnly(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.isReadOnly(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		path = vfs.normalize(path)
 		return path == "/rom" or path:sub(1, 5) == "/rom/"
 	end
-	function tmpapi.fs.getName(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.getName(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		path = vfs.normalize(path)
@@ -641,8 +719,22 @@ function api.init(Computer,color,id)
 		local fpath, name, ext = path:match("(.-)([^\\/]-%.?([^%.\\/]*))$")
 		return name
 	end
-	function tmpapi.fs.getSize(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.getDrive(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
+			error("Expected string",2)
+		end
+		local testpath = api.fs.combine("data/", path)
+		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
+		path = vfs.normalize(path)
+		if path == "/rom" or path:sub(1, 5) == "/rom/" then
+			return "rom"
+		end
+		return "hdd"
+	end
+	function tmpapi.fs.getSize(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
@@ -660,20 +752,23 @@ function api.init(Computer,color,id)
 		return math.ceil(size/512)*512
 	end
 
-	function tmpapi.fs.getFreeSpace(path)
-		if type(path) ~= "string" then
+	function tmpapi.fs.getFreeSpace(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
+		path = vfs.normalize(path)
 		if path == "/rom" or path:sub(1, 5) == "/rom/" then
 			return 0
 		end
 		return math.huge
 	end
 
-	function tmpapi.fs.makeDir(path) -- All write functions are within data/
-		if type(path) ~= "string" then
+	function tmpapi.fs.makeDir(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", path)
@@ -727,8 +822,9 @@ function api.init(Computer,color,id)
 		end
 	end
 
-	function tmpapi.fs.move(fromPath, toPath)
-		if type(fromPath) ~= "string" or type(toPath) ~= "string" then
+	function tmpapi.fs.move(...)
+		local fromPath, toPath = ...
+		if type(fromPath) ~= "string" or type(toPath) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", fromPath)
@@ -754,8 +850,9 @@ function api.init(Computer,color,id)
 		deltree(fromPath)
 	end
 
-	function tmpapi.fs.copy(fromPath, toPath)
-		if type(fromPath) ~= "string" or type(toPath) ~= "string" then
+	function tmpapi.fs.copy(...)
+		local fromPath, toPath = ...
+		if type(fromPath) ~= "string" or type(toPath) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
 		local testpath = tmpapi.fs.combine("data/", fromPath)
@@ -779,8 +876,11 @@ function api.init(Computer,color,id)
 		copytree(fromPath, toPath)
 	end
 
-	function tmpapi.fs.delete(path)
-		if type(path) ~= "string" then error("Expected string",2) end
+	function tmpapi.fs.delete(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
+			error("Expected string",2)
+		end
 		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 		path = vfs.normalize(path)
@@ -945,8 +1045,8 @@ function api.init(Computer,color,id)
 	}
 	tmpapi.env = {
 		_VERSION = "Luaj-jse 2.0.3",
-		tostring = tostring,
-		tonumber = tonumber,
+		tostring = tmpapi.tostring,
+		tonumber = tmpapi.tonumber,
 		unpack = unpack,
 		getfenv = getfenv,
 		setfenv = setfenv,
@@ -963,6 +1063,7 @@ function api.init(Computer,color,id)
 		ipairs = ipairs,
 		pairs = pairs,
 		pcall = pcall,
+		xpcall = xpcall,
 		loadstring = tmpapi.loadstring,
 		math = tablecopy(math),
 		string = tablecopy(string),
@@ -971,22 +1072,6 @@ function api.init(Computer,color,id)
 
 		-- CC apis (BIOS completes tmpapi.)
 		term = {
-			native = {
-				clear = tmpapi.term.clear,
-				clearLine = tmpapi.term.clearLine,
-				getSize = tmpapi.term.getSize,
-				getCursorPos = tmpapi.term.getCursorPos,
-				setCursorPos = tmpapi.term.setCursorPos,
-				setTextColor = tmpapi.term.setTextColor,
-				setTextColour = tmpapi.term.setTextColor,
-				setBackgroundColor = tmpapi.term.setBackgroundColor,
-				setBackgroundColour = tmpapi.term.setBackgroundColor,
-				setCursorBlink = tmpapi.term.setCursorBlink,
-				scroll = tmpapi.term.scroll,
-				write = tmpapi.term.write,
-				isColor = tmpapi.term.isColor,
-				isColour = tmpapi.term.isColor,
-			},
 			clear = tmpapi.term.clear,
 			clearLine = tmpapi.term.clearLine,
 			getSize = tmpapi.term.getSize,
@@ -1009,7 +1094,7 @@ function api.init(Computer,color,id)
 			isDir = tmpapi.fs.isDir,
 			isReadOnly = tmpapi.fs.isReadOnly,
 			getName = tmpapi.fs.getName,
-			getDrive = function(path) return nil end, -- Dummy function
+			getDrive = tmpapi.fs.getDrive,
 			getSize = tmpapi.fs.getSize,
 			getFreeSpace = tmpapi.fs.getFreeSpace,
 			makeDir = tmpapi.fs.makeDir,

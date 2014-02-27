@@ -119,7 +119,6 @@ function emu.newComputer(color,id)
 		if _conf.lockfps > 0 then next_time = next_time + min_dt end
 
 		local now = love.timer.getTime()
-		if _conf.enableAPI_http then HttpRequest.checkRequests() end
 		if self.reboot then self:start() end
 
 		updateShortcut("terminate", "ctrl", "t", function()

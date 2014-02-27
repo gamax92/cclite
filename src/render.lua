@@ -82,8 +82,6 @@ local lsetCol = love.graphics.setColor
 local ldrawRect = love.graphics.rectangle
 local lprint = love.graphics.print
 local tOffset = Screen.tOffset
-local decWidth = _conf.terminal_width - 1
-local decHeight = _conf.terminal_height - 1
 
 local lastColor = COLOUR_FULL_WHITE
 local function setColor(c,f)
@@ -103,14 +101,16 @@ function Screen:message(message)
 	self.dirty = true
 end
 
-local function drawMessage(message,x,y)
+function Screen:drawMessage(message,x,y)
 	setColor(COLOUR_HALF_BLACK)
-	ldrawRect("fill", x, y - _conf.terminal_guiScale, Screen.font:getWidth(message) * _conf.terminal_guiScale, Screen.pixelHeight)
+	ldrawRect("fill", x, y - _conf.terminal_guiScale, self.font:getWidth(message) * _conf.terminal_guiScale, self.pixelHeight)
 	setColor(COLOUR_FULL_WHITE)
 	lprint(message, x, y, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 end
 
 function Screen:draw(Emulator)
+	local decWidth = _conf.terminal_width - 1
+	local decHeight = _conf.terminal_height - 1
 	-- Setup font
 	love.graphics.setFont(Screen.font)
 	-- Render terminal
@@ -155,14 +155,7 @@ function Screen:draw(Emulator)
 		love.graphics.translate(-_conf.terminal_guiScale, -_conf.terminal_guiScale)
 	end
 
-	-- Render emulator elements
-	for i = 1,10 do
-		if self.messages[i][3] then
-			drawMessage(self.messages[i][1],_conf.terminal_guiScale, self.sHeight - ((self.pixelHeight + _conf.terminal_guiScale) * (11 - i)) + _conf.terminal_guiScale)
-		end
-	end
-
 	if _conf.cclite_showFPS then
-		drawMessage("FPS: " .. Emulator.FPS, self.sWidth - (49 * _conf.terminal_guiScale), _conf.terminal_guiScale * 2)
+		self:drawMessage("FPS: " .. Emulator.FPS, self.sWidth - (49 * _conf.terminal_guiScale), _conf.terminal_guiScale * 2)
 	end
 end

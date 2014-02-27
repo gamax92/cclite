@@ -1,16 +1,67 @@
--- Verify configuration
-assert(type(_conf.enableAPI_http) == "boolean", "Invalid value for _conf.enableAPI_http")
-assert(type(_conf.enableAPI_cclite) == "boolean", "Invalid value for _conf.enableAPI_cclite")
-assert(type(_conf.terminal_height) == "number", "Invalid value for _conf.terminal_height")
-assert(type(_conf.terminal_width) == "number", "Invalid value for _conf.terminal_width")
-assert(type(_conf.terminal_guiScale) == "number", "Invalid value for _conf.terminal_guiScale")
-assert(type(_conf.cclite_showFPS) == "boolean", "Invalid value for _conf.cclite_showFPS")
-assert(type(_conf.lockfps) == "number", "Invalid value for _conf.lockfps")
-assert(type(_conf.compat_faultyClip) == "boolean", "Invalid value for _conf.compat_faultyClip")
-assert(type(_conf.useLuaSec) == "boolean", "Invalid value for _conf.useLuaSec")
-assert(type(_conf.useCRLF) == "boolean", "Invalid value for _conf.useCRLF")
+local messageCache = {}
 
-if _conf.enableAPI_http then require("http.HttpRequest") end
+local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable emulation of buggy Clipboard handling\n	compat_faultyClip = true,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n}\n'
+
+-- Load configuration
+local defaultConfFunc = loadstring(defaultConf,"@config")
+defaultConfFunc() -- Load defaults.
+
+function complain(test,err,stat)
+	if test ~= true then
+		table.insert(messageCache,err)
+		stat.bad = true
+	end
+end
+
+function validateConfig(cfgData,setup)
+	local cfgCache = {}
+	for k,v in pairs(_conf) do
+		cfgCache[k] = v
+	end
+	local cfgFunc, err = loadstring(cfgData,"@config")
+	if cfgFunc == nil then
+		table.insert(messageCache,err)
+	else
+		stat, err = pcall(cfgFunc)
+		if stat == false then
+			table.insert(messageCache,err)
+			_conf = cfgCache
+		else
+			-- Verify configuration
+			local stat = {bad = false}
+			complain(type(_conf.enableAPI_http) == "boolean", "Invalid value for _conf.enableAPI_http", stat)
+			complain(type(_conf.enableAPI_cclite) == "boolean", "Invalid value for _conf.enableAPI_cclite", stat)
+			complain(type(_conf.terminal_height) == "number", "Invalid value for _conf.terminal_height", stat)
+			complain(type(_conf.terminal_width) == "number", "Invalid value for _conf.terminal_width", stat)
+			complain(type(_conf.terminal_guiScale) == "number", "Invalid value for _conf.terminal_guiScale", stat)
+			complain(type(_conf.cclite_showFPS) == "boolean", "Invalid value for _conf.cclite_showFPS", stat)
+			complain(type(_conf.lockfps) == "number", "Invalid value for _conf.lockfps", stat)
+			complain(type(_conf.compat_faultyClip) == "boolean", "Invalid value for _conf.compat_faultyClip", stat)
+			complain(type(_conf.useLuaSec) == "boolean", "Invalid value for _conf.useLuaSec", stat)
+			complain(type(_conf.useCRLF) == "boolean", "Invalid value for _conf.useCRLF", stat)
+			if stat.bad == true then
+				_conf = cfgCache
+			elseif type(setup) == "function" then
+				setup(cfgCache)
+			end
+		end
+	end
+end
+
+-- Note: this uses io because I might not want to use the Save directory in the future.
+local cfgPath = love.filesystem.getSaveDirectory() .. "/CCLite.cfg"
+local cfgFile = io.open(cfgPath,"r")
+if cfgFile ~= nil then
+	local cfgData = cfgFile:read("*all")
+	cfgFile:close()
+	validateConfig(cfgData)
+else
+	local cfgFile = io.open(cfgPath,"w")
+	cfgFile:write(defaultConf)
+	cfgFile:close()
+end
+
+require("http.HttpRequest")
 bit = require("bit")
 require("emu")
 require("render")
@@ -22,21 +73,23 @@ if _conf.compat_loadstringMask ~= nil then
 end
 
 -- Test if HTTPS is working
-if _conf.useLuaSec then
-	local stat, err = pcall(function()
-		local trash = require("ssl.https")
-	end)
-	if stat ~= true then
-		_conf.useLuaSec = false
-		Screen:message("Could not load HTTPS support")
-		if err:find("module 'ssl.core' not found") then
-			print("CCLite cannot find ssl.dll or ssl.so\n\n" .. err)
-		elseif err:find("The specified procedure could not be found") then
-			print("CCLite cannot find ssl.lua\n\n" .. err)
-		elseif err:find("module 'ssl.https' not found") then
-			print("CCLite cannot find ssl/https.lua\n\n" .. err)
-		else
-			print(err)
+function _testLuaSec()
+	if _conf.useLuaSec then
+		local stat, err = pcall(function()
+			local trash = require("ssl.https")
+		end)
+		if stat ~= true then
+			_conf.useLuaSec = false
+			Screen:message("Could not load HTTPS support")
+			if err:find("module 'ssl.core' not found") then
+				print("CCLite cannot find ssl.dll or ssl.so\n\n" .. err)
+			elseif err:find("The specified procedure could not be found") then
+				print("CCLite cannot find ssl.lua\n\n" .. err)
+			elseif err:find("module 'ssl.https' not found") then
+				print("CCLite cannot find ssl/https.lua\n\n" .. err)
+			else
+				print(err)
+			end
 		end
 	end
 end
@@ -140,6 +193,84 @@ end
 
 local smallfont = love.graphics.newFont(10)
 
+function openLocation(place)
+  if love._os == 'OS X' then
+    os.execute('open "' .. place .. '"')
+  elseif love._os == 'Windows' then -- Tested on Windows 7
+    os.execute('start ' .. place)
+  elseif love._os == 'Linux' then
+    os.execute('xdg-open "' .. place .. '"')
+  end
+end
+
+local function ui_editConfig()
+	local cfgData
+	local cfgFile = io.open(cfgPath,"r")
+	if cfgFile ~= nil then
+		cfgData = cfgFile:read("*all")
+		cfgFile:close()
+	else
+		local cfgFile = io.open(cfgPath,"w")
+		cfgFile:write(defaultConf)
+		cfgFile:close()
+		cfgData = defaultConf
+	end
+	local editor = loveframes.Create("frame")
+	editor:SetName("Configuration Editor")
+	editor:SetSize(640,480)
+	editor:CenterWithinArea(0, 0, love.window.getDimensions())
+	editor.input_box = loveframes.Create("textinput", editor)
+	editor.input_box:SetMultiline(true)
+	editor.input_box:SetPos(0,25)
+	editor.input_box:SetWidth(640)
+	editor.input_box:SetHeight(455)
+	editor.input_box:SetText(cfgData)
+	editor.input_box:SetFocus(true)
+	local internals = editor:GetInternals()
+	for k,v in pairs(internals) do
+		if v.type == "closebutton" then
+			function v.OnClick()
+				local cfgData = editor.input_box:GetText()
+				validateConfig(cfgData, function(cfgCache)
+					-- Config was good, modify things as needed.
+					local cfgFile = io.open(cfgPath,"w")
+					cfgFile:write(cfgData)
+					cfgFile:close()
+					Screen.sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
+					Screen.sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
+					Screen.pixelWidth = _conf.terminal_guiScale * 6
+					Screen.pixelHeight = _conf.terminal_guiScale * 9
+					for k,v in pairs(Emulator.computers) do
+						v.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
+						if cfgCache.terminal_height < _conf.terminal_height then
+							for y = 1,cfgCache.terminal_height do
+								for x = cfgCache.terminal_width + 1,_conf.terminal_width do
+									v.textB[y][x] = " "
+									v.backgroundColourB[y][x] = 32768
+									v.textColourB[y][x] = 1
+								end
+							end
+							for y = cfgCache.terminal_height + 1, _conf.terminal_height do
+								v.textB[y] = {}
+								v.backgroundColourB[y] = {}
+								v.textColourB[y] = {}
+								for x = 1,_conf.terminal_width do
+									v.textB[y][x] = " "
+									v.backgroundColourB[y][x] = 32768
+									v.textColourB[y][x] = 1
+								end
+							end
+						end
+					end
+					Screen:message("Loaded new config")
+					_testLuaSec()
+				end)
+				editor:Remove()
+			end
+		end
+	end
+end
+
 local function _ui_newComputerBox(name)
 	local prompt = loveframes.Create("frame")
 	prompt:SetName(name)
@@ -181,6 +312,16 @@ local function ui_newAdvancedComputer()
 		prompt:Remove()
 	end
 	prompt.input_box.OnEnter = prompt.OK_btn.OnClick
+end
+
+local function ui_aboutBox()
+	local about = loveframes.Create("frame")
+	about:SetName("About CCLite")
+	about:SetSize(300,200)
+	about:CenterWithinArea(0, 0, love.window.getDimensions())
+	about.oText = loveframes.Create("text", about)
+	about.oText:SetPos(8,34)
+	about.oText:SetText("CCLite by Gamax92. \n \n Credits: \n Sorroko: Original CCLite \n PixelToast: Fixes to CCLite \n #lua @ freenode: Code pieces \n #love @ OFTC: Support \n CC Devs: ComputerCraft \n Searge: Fernflower :P \n nikolairesokav: LoveFrames")
 end
 
 function love.load()
@@ -227,7 +368,7 @@ function love.load()
 	addMenuBtn({
 		name = "File",
 		options = {
-			{"Something",function() end},
+			{"Edit Config",ui_editConfig},
 			{},
 			{"Exit",function() love.event.quit() end}
 		}
@@ -244,16 +385,14 @@ function love.load()
 		options = {
 			{"Help",function() end},
 			{},
-			{"Forum topic",function() end},
-			{"CCLite Wiki",function() end},
-			{"Report a bug",function() end},
-			{"View the code",function() end},
+			{"Forum topic",function() openLocation("http://www.computercraft.info/forums2/index.php?/topic/16823-/") end},
+			{"CCLite Wiki",function() openLocation("https://github.com/gamax92/cclite/wiki/_pages") end},
+			{"Report a bug",function() openLocation("https://github.com/gamax92/cclite/issues") end},
+			{"View the code",function() openLocation("https://github.com/gamax92/cclite") end},
 			{},
-			{"About",function() end}
+			{"About",ui_aboutBox}
 		}
 	})
-	
-	love.filesystem.setIdentity("ccemu")
 
 	local fontPack = {131,161,163,166,170,171,172,174,186,187,188,189,191,196,197,198,199,201,209,214,215,216,220,224,225,226,228,229,230,231,232,233,234,235,236,237,238,239,241,242,243,244,246,248,249,250,251,252,255}
 	ChatAllowedCharacters = {}
@@ -461,6 +600,9 @@ function love.run()
 		dt = love.timer.getDelta()
 		local now = love.timer.getTime()
 		
+		-- Check HTTP requests
+		HttpRequest.checkRequests()
+		
 		-- Call update and draw
 		for k,v in pairs(Emulator.computers) do
 			v:update(dt)
@@ -478,6 +620,11 @@ function love.run()
 		loveframes.update(dt)
 
 		-- Messages
+		for i = 1,#messageCache do
+			Screen:message(messageCache[i])
+		end
+		messageCache = {}
+
 		for i = 1, 10 do
 			if now - Screen.messages[i][2] > 4 and Screen.messages[i][3] == true then
 				Screen.messages[i][3] = false
@@ -490,6 +637,12 @@ function love.run()
 			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)
 			love.graphics.rectangle("fill", 0, 0, L2DScreenW, L2DScreenH)
 			loveframes.draw()
+			-- Render emulator elements
+			for i = 1,10 do
+				if Screen.messages[i][3] then
+					Screen:drawMessage(Screen.messages[i][1],_conf.terminal_guiScale, L2DScreenH - ((Screen.pixelHeight + _conf.terminal_guiScale) * (11 - i)) + _conf.terminal_guiScale)
+				end
+			end
 		end
 
 		if _conf.lockfps > 0 then 

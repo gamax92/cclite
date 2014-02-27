@@ -130,6 +130,7 @@ function Screen:draw(Emulator)
 		end
 
 		-- Render text
+		love.graphics.translate(_conf.terminal_guiScale, _conf.terminal_guiScale)
 		for y = 0, decHeight do
 			local self_textB = Emulator.textB[y + 1]
 			local self_textColourB = Emulator.textColourB[y + 1]
@@ -141,7 +142,7 @@ function Screen:draw(Emulator)
 						text = "?"
 					end
 					setColor(COLOUR_CODE[self_textColourB[x + 1]])
-					lprint(text, x * self.pixelWidth + tOffset[text] + _conf.terminal_guiScale, y * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+					lprint(text, x * self.pixelWidth + tOffset[text], y * self.pixelHeight, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 				end
 			end
 		end
@@ -149,8 +150,9 @@ function Screen:draw(Emulator)
 		-- Render cursor
 		if Emulator.api.comp.blink and self.showCursor and Emulator.api.comp.cursorX >= 1 and Emulator.api.comp.cursorX <= _conf.terminal_width and Emulator.api.comp.cursorY >= 1 and Emulator.api.comp.cursorY <= _conf.terminal_height then
 			setColor(COLOUR_CODE[Emulator.api.comp.fg])
-			lprint("_", (Emulator.api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"] + _conf.terminal_guiScale, (Emulator.api.comp.cursorY - 1) * self.pixelHeight + _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+			lprint("_", (Emulator.api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"], (Emulator.api.comp.cursorY - 1) * self.pixelHeight, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 		end
+		love.graphics.translate(-_conf.terminal_guiScale, -_conf.terminal_guiScale)
 	end
 
 	-- Render emulator elements

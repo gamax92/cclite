@@ -62,7 +62,7 @@ TODO:
 
 Add in more error checking
 
-Add in virtual redstone system
+Make a functional virtual redstone system
 
 Make Error Levels report C functions properly
 
@@ -70,7 +70,7 @@ Make peripheralAttach only add valid sides
 
 Have virtual Disk Drives work with Treasure disks
 
-Make virtual Disk Drives use mounting system
+Timers need to use love.timer.getTime() and not os.clock()
 
 **Add in missing globals:**
 

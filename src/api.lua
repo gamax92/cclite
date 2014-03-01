@@ -256,10 +256,24 @@ function api.tonumber(...)
 		error("bad argument: string expected, got " .. type(str),2)
 	end
 	-- Fix some strings.
-	if type(str) == "string" and base >= 11 then -- TODO: If string has non Odd elements, base must be 12 or higher.
+	if type(str) == "string" and base >= 11 then
 		str = str:gsub("%[","4"):gsub("\\","5"):gsub("]","6"):gsub("%^","7"):gsub("_","8"):gsub(string.char(96),"9")
 	end
 	return tonumber(str,base)
+end
+function api.error(str,level)
+	level = level or 1
+	if type(level) ~= "number" then
+		error("bad argument #2: number expected, got " .. type(level),2)
+	end
+	if level == 0 then
+		level = -1 -- Prevent defect caused by this error fix.
+	end
+	local info = debug.getinfo(level+1)
+	if info ~= nil and info.source == "=[C]" and level >= 1 then
+		str = info.name .. ": " .. tostring(str)
+	end
+	error(str,level+1)
 end
 function api.loadstring(str, source)
 	source = source or "string"
@@ -513,7 +527,7 @@ end
 
 api.os = {}
 function api.os.clock()
-	return math.floor(os.clock()*20)/20 - api.comp.startTime
+	return tonumber(string.format("%0.2f",math.floor(love.timer.getTime()*20)/20 - api.comp.startTime))
 end
 function api.os.time()
 	return math.floor((os.clock()*0.02)%24*1000)/1000
@@ -1037,7 +1051,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 		fg = 1,
 		blink = false,
 		label = nil,
-		startTime = math.floor(os.clock()*20)/20
+		startTime = math.floor(love.timer.getTime()*20)/20
 	}
 	api.env = {
 		_VERSION = "Luaj-jse 2.0.3",
@@ -1055,7 +1069,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 		type = type,
 		select = select,
 		assert = assert,
-		error = error,
+		error = api.error,
 		ipairs = ipairs,
 		pairs = pairs,
 		pcall = pcall,

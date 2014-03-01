@@ -48,17 +48,11 @@ function validateConfig(cfgData,setup)
 	end
 end
 
--- Note: this uses io because I might not want to use the Save directory in the future.
-local cfgPath = love.filesystem.getSaveDirectory() .. "/CCLite.cfg"
-local cfgFile = io.open(cfgPath,"r")
-if cfgFile ~= nil then
-	local cfgData = cfgFile:read("*all")
-	cfgFile:close()
+if love.filesystem.exists("/CCLite.cfg") then
+	local cfgData = love.filesystem.read("/CCLite.cfg")
 	validateConfig(cfgData)
 else
-	local cfgFile = io.open(cfgPath,"w")
-	cfgFile:write(defaultConf)
-	cfgFile:close()
+	love.filesystem.write("/CCLite.cfg", defaultConf)
 end
 
 require("http.HttpRequest")
@@ -205,14 +199,10 @@ end
 
 local function ui_editConfig()
 	local cfgData
-	local cfgFile = io.open(cfgPath,"r")
-	if cfgFile ~= nil then
-		cfgData = cfgFile:read("*all")
-		cfgFile:close()
+	if love.filesystem.exists("/CCLite.cfg") then
+		cfgData = love.filesystem.read("/CCLite.cfg")
 	else
-		local cfgFile = io.open(cfgPath,"w")
-		cfgFile:write(defaultConf)
-		cfgFile:close()
+		love.filesystem.write("/CCLite.cfg", defaultConf)
 		cfgData = defaultConf
 	end
 	local editor = loveframes.Create("frame")
@@ -233,9 +223,7 @@ local function ui_editConfig()
 				local cfgData = editor.input_box:GetText()
 				validateConfig(cfgData, function(cfgCache)
 					-- Config was good, modify things as needed.
-					local cfgFile = io.open(cfgPath,"w")
-					cfgFile:write(cfgData)
-					cfgFile:close()
+					love.filesystem.write("/CCLite.cfg", cfgData)
 					Screen.sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
 					Screen.sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
 					Screen.pixelWidth = _conf.terminal_guiScale * 6

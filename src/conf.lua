@@ -28,6 +28,9 @@ _conf = {
 	
 	-- Enable usage of Carrage Return for fs.writeLine
 	useCRLF = false,
+	
+	-- Check for updates
+	cclite_updateChecker = true,
 }
 function love.conf(t)
 	t.identity = "ccemu"

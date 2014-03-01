@@ -9,6 +9,7 @@ assert(type(_conf.lockfps) == "number", "Invalid value for _conf.lockfps")
 assert(type(_conf.compat_faultyClip) == "boolean", "Invalid value for _conf.compat_faultyClip")
 assert(type(_conf.useLuaSec) == "boolean", "Invalid value for _conf.useLuaSec")
 assert(type(_conf.useCRLF) == "boolean", "Invalid value for _conf.useCRLF")
+assert(type(_conf.cclite_updateChecker) == "boolean", "Invalid value for _conf.cclite_updateChecker")
 
 if _conf.enableAPI_http then require("http.HttpRequest") end
 bit = require("bit")
@@ -42,7 +43,7 @@ end
 
 -- Check for updates
 local _updateCheck
-if love.filesystem.exists("builddate.txt") then
+if love.filesystem.exists("builddate.txt") and _conf.cclite_updateChecker then
 	_updateCheck = {}
 	_updateCheck.thread = love.thread.newThread("updateCheck.lua")
 	_updateCheck.channel = love.thread.newChannel()

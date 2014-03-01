@@ -115,7 +115,7 @@ function Screen:draw(Emulator)
 	love.graphics.setFont(Screen.font)
 	-- Render terminal
 	if not Emulator.running then
-		setColor(COLOUR_FULL_BLACK)
+		setColor(COLOUR_FULL_BLACK,true)
 		ldrawRect("fill", 0, 0, self.sWidth, self.sHeight)
 	else
 		-- Render background color

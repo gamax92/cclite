@@ -88,6 +88,16 @@ function _testLuaSec()
 	end
 end
 
+-- Check for updates
+local _updateCheck
+if love.filesystem.exists("builddate.txt") then
+	_updateCheck = {}
+	_updateCheck.thread = love.thread.newThread("updateCheck.lua")
+	_updateCheck.channel = love.thread.newChannel()
+	_updateCheck.thread:start(_updateCheck.channel)
+	_updateCheck.working = true
+end
+
 -- Load virtual peripherals
 peripheral = {}
 peripheral.base = {}
@@ -587,6 +597,28 @@ function love.run()
 		love.timer.step()
 		dt = love.timer.getDelta()
 		local now = love.timer.getTime()
+
+		-- Check update checker
+		if _updateCheck ~= nil and _updateCheck.working == true then
+			if _updateCheck.thread:isRunning() == false and _updateCheck.channel:getCount() == 0 then
+				_updateCheck.working = false
+			elseif _updateCheck.channel:getCount() > 0 then
+				local data = _updateCheck.channel:pop()
+				if type(data) == "string" then
+					local tmpFunc = loadstring("return "..data)
+					if type(tmpFunc) == "function" then
+						data = tmpFunc()
+						if data[2] == 200 then
+							local buildData = love.filesystem.read("builddate.txt")
+							if buildData ~= data[5] then
+								Screen:message("Found CCLite Update")
+							end
+						end
+					end
+				end
+				_updateCheck.working = false
+			end
+		end
 		
 		-- Check HTTP requests
 		HttpRequest.checkRequests()

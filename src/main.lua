@@ -40,6 +40,16 @@ if _conf.useLuaSec then
 	end
 end
 
+-- Check for updates
+local _updateCheck
+if love.filesystem.exists("builddate.txt") then
+	_updateCheck = {}
+	_updateCheck.thread = love.thread.newThread("updateCheck.lua")
+	_updateCheck.channel = love.thread.newChannel()
+	_updateCheck.thread:start(_updateCheck.channel)
+	_updateCheck.working = true
+end
+
 -- Load virtual peripherals
 peripheral = {}
 peripheral.base = {}
@@ -219,8 +229,6 @@ function love.load()
 		min_dt = 1/_conf.lockfps
 		next_time = love.timer.getTime()
 	end
-
-	love.filesystem.setIdentity("ccemu")
 
 	local fontPack = {131,161,163,166,170,171,172,174,186,187,188,189,191,196,197,198,199,201,209,214,215,216,220,224,225,226,228,229,230,231,232,233,234,235,236,237,238,239,241,242,243,244,246,248,249,250,251,252,255}
 	ChatAllowedCharacters = {}
@@ -486,6 +494,28 @@ function love.run()
 
 		-- Update the FPS counter
 		love.timer.step()
+
+		-- Check update checker
+		if _updateCheck ~= nil and _updateCheck.working == true then
+			if _updateCheck.thread:isRunning() == false and _updateCheck.channel:getCount() == 0 then
+				_updateCheck.working = false
+			elseif _updateCheck.channel:getCount() > 0 then
+				local data = _updateCheck.channel:pop()
+				if type(data) == "string" then
+					local tmpFunc = loadstring("return "..data)
+					if type(tmpFunc) == "function" then
+						data = tmpFunc()
+						if data[2] == 200 then
+							local buildData = love.filesystem.read("builddate.txt")
+							if buildData ~= data[5] then
+								Screen:message("Found CCLite Update")
+							end
+						end
+					end
+				end
+				_updateCheck.working = false
+			end
+		end
 
 		-- Call update and draw
 		Emulator:update()

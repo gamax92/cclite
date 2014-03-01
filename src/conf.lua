@@ -30,7 +30,7 @@ _conf = {
 	useCRLF = false,
 }
 function love.conf(t)
-	t.identify = "ccemu"
+	t.identity = "ccemu"
 	t.console = false -- Enable this to see why you get emulator messages.
 	t.window.title = "ComputerCraft Emulator"
 	t.window.icon = "res/icon.png"

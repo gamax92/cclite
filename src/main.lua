@@ -1,6 +1,6 @@
 local messageCache = {}
 
-local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable emulation of buggy Clipboard handling\n	compat_faultyClip = true,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n}\n'
+local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable emulation of buggy Clipboard handling\n	compat_faultyClip = true,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n}\n'
 
 -- Load configuration
 local defaultConfFunc = loadstring(defaultConf,"@config")
@@ -39,6 +39,7 @@ function validateConfig(cfgData,setup)
 			complain(type(_conf.compat_faultyClip) == "boolean", "Invalid value for _conf.compat_faultyClip", stat)
 			complain(type(_conf.useLuaSec) == "boolean", "Invalid value for _conf.useLuaSec", stat)
 			complain(type(_conf.useCRLF) == "boolean", "Invalid value for _conf.useCRLF", stat)
+			complain(type(_conf.cclite_updateChecker) == "boolean", "Invalid value for _conf.cclite_updateChecker", stat)
 			if stat.bad == true then
 				_conf = cfgCache
 			elseif type(setup) == "function" then
@@ -90,7 +91,7 @@ end
 
 -- Check for updates
 local _updateCheck
-if love.filesystem.exists("builddate.txt") then
+if love.filesystem.exists("builddate.txt") and _conf.cclite_updateChecker then
 	_updateCheck = {}
 	_updateCheck.thread = love.thread.newThread("updateCheck.lua")
 	_updateCheck.channel = love.thread.newChannel()

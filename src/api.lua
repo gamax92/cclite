@@ -252,14 +252,23 @@ function api.tonumber(...)
 	if base < 2 or base >= 37 then
 		error("bad argument #2: base out of range",2)
 	end
-	if base ~= 10 and (type(str) ~= "number" and type(str) ~= "string") then
-		error("bad argument: string expected, got " .. type(str),2)
+	if base ~= 10 then
+		if type(str) ~= "number" and type(str) ~= "string" then
+			error("bad argument: string expected, got " .. type(str),2)
+		else
+			str = tostring(str)
+		end
 	end
 	-- Fix some strings.
 	if type(str) == "string" and base >= 11 then
 		str = str:gsub("%[","4"):gsub("\\","5"):gsub("]","6"):gsub("%^","7"):gsub("_","8"):gsub(string.char(96),"9")
 	end
-	return tonumber(str,base)
+	if base ~= 10 and str:sub(1,1) == "-" then
+		local tmpnum = tonumber(str:sub(2),base)
+		return (tmpnum ~= nil and str:sub(2,2) ~= "-") and -tmpnum or nil
+	else
+		return tonumber(str,base)
+	end
 end
 function api.error(str,level)
 	level = level or 1

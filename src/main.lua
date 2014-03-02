@@ -56,7 +56,6 @@ else
 	love.filesystem.write("/CCLite.cfg", defaultConf)
 end
 
-require("love.window")
 love.window.setTitle("ComputerCraft Emulator")
 love.window.setIcon(love.image.newImageData("res/icon.png"))
 love.window.setMode((_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2), (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2), {vsync = false})

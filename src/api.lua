@@ -272,6 +272,26 @@ function api.init(Computer,color,id)
 			return tonumber(str,base)
 		end
 	end
+	function tmpapi.getfenv(level)
+		level = level or 1
+		if type(level) ~= "function" and type(level) ~= "number" then
+			error("bad argument: " .. (type(level) == "string" and "number" or "int") .. " expected, got " .. type(level),2)
+		end
+		if type(level) == "function" then
+			return getfenv(level)
+		end
+		if level < 0 then
+			error("bad argument #1: level must be non-negative",2)
+		end
+		local stat,env = pcall(getfenv,level + 2)
+		if not stat then
+			error("bad argument #1: invalid level",2)
+		end
+		if env.love == love then
+			return tmpapi.env
+		end
+		return env
+	end
 	function tmpapi.error(str,level)
 		level = level or 1
 		if type(level) ~= "number" then
@@ -1071,7 +1091,7 @@ function api.init(Computer,color,id)
 		tostring = tmpapi.tostring,
 		tonumber = tmpapi.tonumber,
 		unpack = unpack,
-		getfenv = getfenv,
+		getfenv = tmpapi.getfenv,
 		setfenv = setfenv,
 		rawequal = rawequal,
 		rawset = rawset,

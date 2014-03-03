@@ -275,15 +275,17 @@ function api.getfenv(level)
 	if type(level) ~= "function" and type(level) ~= "number" then
 		error("bad argument: " .. (type(level) == "string" and "number" or "int") .. " expected, got " .. type(level),2)
 	end
+	local stat,env
 	if type(level) == "function" then
-		return getfenv(level)
-	end
-	if level < 0 then
-		error("bad argument #1: level must be non-negative",2)
-	end
-	local stat,env = pcall(getfenv,level + 2)
-	if not stat then
-		error("bad argument #1: invalid level",2)
+		env = getfenv(level)
+	else
+		if level < 0 then
+			error("bad argument #1: level must be non-negative",2)
+		end
+		stat,env = pcall(getfenv,level + 2)
+		if not stat then
+			error("bad argument #1: invalid level",2)
+		end
 	end
 	if env.love == love then
 		return api.env

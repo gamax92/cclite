@@ -270,6 +270,26 @@ function api.tonumber(...)
 		return tonumber(str,base)
 	end
 end
+function api.getfenv(level)
+	level = level or 1
+	if type(level) ~= "function" and type(level) ~= "number" then
+		error("bad argument: " .. (type(level) == "string" and "number" or "int") .. " expected, got " .. type(level),2)
+	end
+	if type(level) == "function" then
+		return getfenv(level)
+	end
+	if level < 0 then
+		error("bad argument #1: level must be non-negative",2)
+	end
+	local stat,env = pcall(getfenv,level + 2)
+	if not stat then
+		error("bad argument #1: invalid level",2)
+	end
+	if env.love == love then
+		return api.env
+	end
+	return env
+end
 function api.error(str,level)
 	level = level or 1
 	if type(level) ~= "number" then
@@ -1067,7 +1087,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 		tostring = api.tostring,
 		tonumber = api.tonumber,
 		unpack = unpack,
-		getfenv = getfenv,
+		getfenv = api.getfenv,
 		setfenv = setfenv,
 		rawequal = rawequal,
 		rawset = rawset,

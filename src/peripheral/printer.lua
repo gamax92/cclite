@@ -80,9 +80,8 @@ function peripheral.base.printer(Computer,sSide)
 		love.graphics.setColor(color_white)
 		love.graphics.print(text, x * _conf.terminal_guiScale, y * _conf.terminal_guiScale, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 	end
-	local printerFrame = loveframes.Create("frame")
+	local printerFrame = ui_createAutoResizingFrame(170,55)
 	printerFrame:SetName("Printer on Computer ID " .. Computer.api.os.getComputerID() .. " side " .. sSide)
-	printerFrame:SetSize((170 * _conf.terminal_guiScale) + 2, (55 * _conf.terminal_guiScale) + 26)
 	printerFrame:CenterWithinArea(0, 0, love.window.getDimensions())
 	printerFrame.olddraw = printerFrame.draw
 	function printerFrame:draw()

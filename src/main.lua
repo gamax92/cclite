@@ -212,6 +212,19 @@ function openLocation(place)
   end
 end
 
+function ui_createAutoResizingFrame(width, height)
+	local frame = loveframes.Create("frame")
+	frame.width = width * _conf.terminal_guiScale + 2
+	frame.height = height * _conf.terminal_guiScale + 26
+	local oldupdate = frame.update
+	function frame:update(dt)
+		self.width = width * _conf.terminal_guiScale + 2
+		self.height = height * _conf.terminal_guiScale + 26
+		oldupdate(self,dt)
+	end
+	return frame
+end
+
 local function ui_editConfig()
 	local cfgData
 	if love.filesystem.exists("/CCLite.cfg") then

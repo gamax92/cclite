@@ -243,6 +243,9 @@ local function ui_editConfig()
 					Screen.sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
 					Screen.pixelWidth = _conf.terminal_guiScale * 6
 					Screen.pixelHeight = _conf.terminal_guiScale * 9
+					for i = 32,126 do Screen.tOffset[string.char(i)] = math.floor(3 - Screen.font:getWidth(string.char(i)) / 2) * _conf.terminal_guiScale end
+					Screen.tOffset["@"] = 0
+					Screen.tOffset["~"] = 0
 					for k,v in pairs(Emulator.computers) do
 						v.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
 						if cfgCache.terminal_height < _conf.terminal_height then

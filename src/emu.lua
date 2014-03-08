@@ -201,6 +201,9 @@ function emu.newComputer(color,id)
 	Computer.frame:SetName((color and "Advanced" or "Normal") .. " Computer")
 	Computer.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
 	Computer.frame:CenterWithinArea(0, 0, love.window.getDimensions())
+	if Computer.frame.y < -22 then
+		Computer.frame.y = -22
+	end
 	Computer.frame.olddraw = Computer.frame.draw
 	function Computer.frame:draw()
 		self:olddraw()

@@ -628,6 +628,8 @@ function love.run()
 		-- Check HTTP requests
 		HttpRequest.checkRequests()
 		
+		if _conf.lockfps > 0 then next_time = next_time + min_dt end
+		
 		-- Call update and draw
 		for k,v in pairs(Emulator.computers) do
 			v:update(dt)

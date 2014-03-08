@@ -1,5 +1,3 @@
---TODO: Print in edit doesn't like it when page is already loaded.
---      In MC, the page is ended and life goes on.
 local res = {}
 res.gui = love.graphics.newImage("res/printer/gui.png")
 res.ink_sack = love.graphics.newImage("res/printer/ink_sack.png")

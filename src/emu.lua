@@ -116,8 +116,6 @@ function emu.newComputer(color,id)
 	end
 
 	function Computer:update(dt)
-		if _conf.lockfps > 0 then next_time = next_time + min_dt end
-
 		local now = love.timer.getTime()
 		if self.reboot then self:start() end
 

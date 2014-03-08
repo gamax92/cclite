@@ -576,6 +576,9 @@ function api.init(Computer,color,id)
 	function tmpapi.os.day()
 		return math.floor(os.clock()/1200)
 	end
+	function tmpapi.os.getComputerID()
+		return id
+	end
 	function tmpapi.os.setComputerLabel(label)
 		if type(label) ~= "string" and type(label) ~= "nil" then error("Expected string or nil",2) end
 		tmpapi.comp.label = label
@@ -1153,8 +1156,8 @@ function api.init(Computer,color,id)
 		},
 		os = {
 			clock = tmpapi.os.clock,
-			getComputerID = function() return id end,
-			computerID = function() return id end,
+			getComputerID = tmpapi.os.getComputerID,
+			computerID = tmpapi.os.getComputerID,
 			setComputerLabel = tmpapi.os.setComputerLabel,
 			getComputerLabel = tmpapi.os.getComputerLabel,
 			computerLabel = tmpapi.os.getComputerLabel,

@@ -56,6 +56,8 @@ else
 	love.filesystem.write("/CCLite.cfg", defaultConf)
 end
 
+love.graphics.setDefaultFilter("nearest", "nearest", 1)
+
 require("http.HttpRequest")
 bit = require("bit")
 require("emu")

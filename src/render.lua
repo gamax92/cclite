@@ -61,7 +61,6 @@ for i = 32,126 do
 	glyphs = glyphs .. string.char(i)
 end
 Screen.font = love.graphics.newImageFont("res/minecraft.png",glyphs)
-Screen.font:setFilter("nearest","nearest")
 love.graphics.setFont(Screen.font)
 
 for i = 32,126 do Screen.tOffset[string.char(i)] = math.floor(3 - Screen.font:getWidth(string.char(i)) / 2) * _conf.terminal_guiScale end
@@ -112,7 +111,7 @@ function Screen:draw(Emulator)
 	local decWidth = _conf.terminal_width - 1
 	local decHeight = _conf.terminal_height - 1
 	-- Setup font
-	love.graphics.setFont(Screen.font)
+	love.graphics.setFont(self.font)
 	-- Render terminal
 	if not Emulator.running then
 		setColor(COLOUR_FULL_BLACK,true)

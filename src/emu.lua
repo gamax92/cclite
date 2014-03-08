@@ -212,6 +212,9 @@ function emu.newComputer(color,id)
 	for k,v in pairs(internals) do
 		if v.type == "closebutton" then
 			function v.OnClick()
+				for k,v in pairs(Computer.api.cclite.peripherals) do
+					if v.detach ~= nil then v.detach() end
+				end
 				Computer.frame:Remove()
 				Computer.dead = true
 			end

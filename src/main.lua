@@ -99,6 +99,8 @@ if love.filesystem.exists("builddate.txt") and _conf.cclite_updateChecker then
 	_updateCheck.working = true
 end
 
+modemPool = {}
+
 -- Load virtual peripherals
 peripheral = {}
 peripheral.base = {}

@@ -480,7 +480,7 @@ function api.init(Computer,color,id)
 			if tmpapi.cclite.peripherals[sSide] then
 				error("Peripheral already attached to " .. sSide,2)
 			end
-			tmpapi.cclite.peripherals[sSide] = peripheral.base[sType](sSide)
+			tmpapi.cclite.peripherals[sSide] = peripheral.base[sType](Computer,sSide)
 			if tmpapi.cclite.peripherals[sSide] ~= nil then
 				local methods = tmpapi.cclite.peripherals[sSide].getMethods()
 				tmpapi.cclite.peripherals[sSide].cache = {}
@@ -502,6 +502,9 @@ function api.init(Computer,color,id)
 			if not tmpapi.cclite.peripherals[sSide] then
 				error("No peripheral attached to " .. sSide,2)
 			end
+			if tmpapi.cclite.peripherals[sSide].detach ~= nil then
+				tmpapi.cclite.peripherals[sSide].detach()
+			end
 			tmpapi.cclite.peripherals[sSide] = nil
 			table.insert(Computer.eventQueue, {"peripheral_detach",sSide})
 		end
@@ -514,7 +517,7 @@ function api.init(Computer,color,id)
 			if type(sSide) ~= "string" then error("Expected string",2) end
 			if type(sMethod) ~= "string" then error("Expected string, string",2) end
 			if not tmpapi.cclite.peripherals[sSide] then error("No peripheral attached",2) end
-			return tmpapi.cclite.peripherals[sSide].ccliteCall(Computer, sMethod, ...)
+			return tmpapi.cclite.peripherals[sSide].ccliteCall(sMethod, ...)
 		end
 		function tmpapi.cclite.message(sMessage)
 			if type(sMessage) ~= "string" then error("Expected string",2) end
@@ -635,7 +638,7 @@ function api.init(Computer,color,id)
 		if not tmpapi.cclite.peripherals[sSide].cache[sMethod] then
 			error("No such method " .. sMethod,2)
 		end
-		return tmpapi.cclite.peripherals[sSide].call(Computer, sMethod, ...)
+		return tmpapi.cclite.peripherals[sSide].call(sMethod, ...)
 	end
 	function tmpapi.peripheral.getNames()
 		local names = {}

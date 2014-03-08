@@ -1,6 +1,6 @@
 --TODO: Print in edit doesn't like it when page is already loaded.
 --      In MC, the page is ended and life goes on.
-function peripheral.base.printer()
+function peripheral.base.printer(Computer)
 	local obj = {}
 	local paper, paperX, paperY = false, 1, 1
 	local paperCount = 0
@@ -8,7 +8,7 @@ function peripheral.base.printer()
 	obj.type = "printer"
 	function obj.getMethods() return {"write","setCursorPos","getCursorPos","getPageSize","newPage","endPage","getInkLevel","setPageTitle","getPaperLevel"} end
 	function obj.ccliteGetMethods() return {"setPaperLevel", "setInkLevel"} end
-	function obj.call(Computer, sMethod, ...)
+	function obj.call(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "write" then
 			local sMsg = unpack(tArgs)
@@ -49,7 +49,7 @@ function peripheral.base.printer()
 			return paperCount
 		end
 	end
-	function obj.ccliteCall(Computer, sMethod, ...)
+	function obj.ccliteCall(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "setPaperLevel" then
 			local nLevel = unpack(tArgs)

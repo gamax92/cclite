@@ -96,7 +96,7 @@ function emu.newComputer(color,id)
 			self:stop()
 		end
 		if not ok then
-			error(err,math.huge) -- Bios was unable to handle error, crash CCLite
+			print(err) -- Bios was unable to handle error
 		end
 		self.blockInput = false
 		return ok, err

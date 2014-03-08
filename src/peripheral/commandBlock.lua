@@ -1,10 +1,10 @@
-function peripheral.base.commandBlock()
+function peripheral.base.commandBlock(Computer)
 	local obj = {}
 	local cmd = ""
 	obj.type = "commandBlock"
 	function obj.getMethods() return {"getCommand", "setCommand", "runCommand"} end
 	function obj.ccliteGetMethods() return {} end
-	function obj.call(Computer, sMethod, ...)
+	function obj.call(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "getCommand" then
 			return cmd

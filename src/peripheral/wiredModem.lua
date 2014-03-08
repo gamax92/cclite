@@ -1,12 +1,12 @@
 local typeC = {}
-function peripheral.base.wiredModem()
+function peripheral.base.wiredModem(Computer,sSide)
 	local obj = {}
 	local remote = {}
 	local channels = {}
 	obj.type = "wiredModem"
 	function obj.getMethods() return {"open","isOpen","close","closeAll","transmit","isWireless","getNamesRemote","isPresentRemote","getTypeRemote","getMethodsRemote","callRemote"} end
 	function obj.ccliteGetMethods() return {"peripheralAttach","peripheralDetach"} end
-	function obj.call(Computer, sMethod, ...)
+	function obj.call(sMethod, ...)
 		local tArgs = {...}
 		if sMethod == "open" then
 			local nChannel = unpack(tArgs)
@@ -34,6 +34,11 @@ function peripheral.base.wiredModem()
 			local nChannel, nReply, oMessage = unpack(tArgs)
 			if type(nChannel) ~= "number" or type(nReply) ~= "number" then error("Expected number",2) end
 			if oMessage == nil then error("2",2) end
+			for k,v in pairs(modemPool) do
+				if v ~= obj then
+					v.ccliteCall("receiveMessage",nChannel,nReply,oMessage,5)
+				end
+			end
 		elseif sMethod == "isWireless" then
 			return false
 		elseif sMethod == "getNamesRemote" then
@@ -67,9 +72,17 @@ function peripheral.base.wiredModem()
 			return remote[sSide].call(sMethod, unpack(tArgs,3))
 		end
 	end
-	function obj.ccliteCall(Computer, sMethod, ...)
+	function obj.ccliteCall(sMethod, ...)
 		local tArgs = {...}
-		if sMethod == "peripheralAttach" then
+		if sMethod == "receiveMessage" then
+			local senderChannel, replyChannel, message, distance =  unpack(tArgs)
+			if type(senderChannel) ~= "number" or type(replyChannel) ~= "number" or type(distance) ~= "number" then
+				error("Expected number, number, anything, number",2)
+			end
+			if channels[senderChannel] == true then
+				table.insert(Computer.eventQueue, {"modem_message", sSide, senderChannel, replyChannel, message, distance})
+			end
+		elseif sMethod == "peripheralAttach" then
 			local sType = unpack(tArgs)
 			if type(sType) ~= "string" then
 				error("Expected string",2)
@@ -102,6 +115,15 @@ function peripheral.base.wiredModem()
 			table.insert(Computer.eventQueue, {"peripheral_detach",sSide})
 		end
 	end
+	function obj.detach()
+		for k,v in pairs(modemPool) do
+			if v == obj then
+				modemPool[k] = nil
+				break
+			end
+		end
+	end
+	table.insert(modemPool,obj)
 	return obj
 end
 peripheral.types.wiredModem = "modem"

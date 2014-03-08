@@ -681,7 +681,7 @@ function love.run()
 			end
 		end
 
-		if love.timer then love.timer.sleep(0.001) end
+		if love.timer then love.timer.sleep(0.01) end
 		if true then --Screen.dirty then
 			love.graphics.present()
 			Screen.dirty = false

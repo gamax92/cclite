@@ -331,20 +331,20 @@ function api.term.clear()
 	for y = 1, _conf.terminal_height do
 		for x = 1, _conf.terminal_width do
 			Screen.textB[y][x] = " "
-			Screen.backgroundColourB[y][x] = api.comp.bg
+			Screen.backgroundColourB[y][x] = Emulator.state.bg
 			Screen.textColourB[y][x] = 1
 		end
 	end
 	Screen.dirty = true
 end
 function api.term.clearLine()
-	if api.comp.cursorY > _conf.terminal_height or api.comp.cursorY < 1 then
+	if Emulator.state.cursorY > _conf.terminal_height or Emulator.state.cursorY < 1 then
 		return
 	end
 	for x = 1, _conf.terminal_width do
-		Screen.textB[api.comp.cursorY][x] = " "
-		Screen.backgroundColourB[api.comp.cursorY][x] = api.comp.bg
-		Screen.textColourB[api.comp.cursorY][x] = 1
+		Screen.textB[Emulator.state.cursorY][x] = " "
+		Screen.backgroundColourB[Emulator.state.cursorY][x] = Emulator.state.bg
+		Screen.textColourB[Emulator.state.cursorY][x] = 1
 	end
 	Screen.dirty = true
 end
@@ -352,34 +352,34 @@ function api.term.getSize()
 	return _conf.terminal_width, _conf.terminal_height
 end
 function api.term.getCursorPos()
-	return api.comp.cursorX, api.comp.cursorY
+	return Emulator.state.cursorX, Emulator.state.cursorY
 end
 function api.term.setCursorPos(...)
 	local x, y = ...
 	if type(x) ~= "number" or type(y) ~= "number" or select("#",...) ~= 2 then error("Expected number, number",2) end
-	api.comp.cursorX = math.floor(x)
-	api.comp.cursorY = math.floor(y)
+	Emulator.state.cursorX = math.floor(x)
+	Emulator.state.cursorY = math.floor(y)
 	Screen.dirty = true
 end
 function api.term.write(text)
 	text = serialize(text)
-	if api.comp.cursorY > _conf.terminal_height or api.comp.cursorY < 1 or api.comp.cursorX > _conf.terminal_width then
-		api.comp.cursorX = api.comp.cursorX + #text
+	if Emulator.state.cursorY > _conf.terminal_height or Emulator.state.cursorY < 1 or Emulator.state.cursorX > _conf.terminal_width then
+		Emulator.state.cursorX = Emulator.state.cursorX + #text
 		return
 	end
 
 	for i = 1, #text do
 		local char = text:sub(i, i)
-		if api.comp.cursorX + i - 1 >= 1 then
-			if api.comp.cursorX + i - 1 > _conf.terminal_width then
+		if Emulator.state.cursorX + i - 1 >= 1 then
+			if Emulator.state.cursorX + i - 1 > _conf.terminal_width then
 				break
 			end
-			Screen.textB[api.comp.cursorY][api.comp.cursorX + i - 1] = char
-			Screen.textColourB[api.comp.cursorY][api.comp.cursorX + i - 1] = api.comp.fg
-			Screen.backgroundColourB[api.comp.cursorY][api.comp.cursorX + i - 1] = api.comp.bg
+			Screen.textB[Emulator.state.cursorY][Emulator.state.cursorX + i - 1] = char
+			Screen.textColourB[Emulator.state.cursorY][Emulator.state.cursorX + i - 1] = Emulator.state.fg
+			Screen.backgroundColourB[Emulator.state.cursorY][Emulator.state.cursorX + i - 1] = Emulator.state.bg
 		end
 	end
-	api.comp.cursorX = api.comp.cursorX + #text
+	Emulator.state.cursorX = Emulator.state.cursorX + #text
 	Screen.dirty = true
 end
 function api.term.setTextColor(...)
@@ -389,7 +389,7 @@ function api.term.setTextColor(...)
 		error("Colour out of range",2)
 	end
 	num = 2^math.floor(math.log(num)/math.log(2))
-	api.comp.fg = num
+	Emulator.state.fg = num
 	Screen.dirty = true
 end
 function api.term.setBackgroundColor(...)
@@ -399,7 +399,7 @@ function api.term.setBackgroundColor(...)
 		error("Colour out of range",2)
 	end
 	num = 2^math.floor(math.log(num)/math.log(2))
-	api.comp.bg = num
+	Emulator.state.bg = num
 end
 function api.term.isColor()
 	return true
@@ -407,7 +407,7 @@ end
 function api.term.setCursorBlink(...)
 	local bool = ...
 	if type(bool) ~= "boolean" or select("#",...) ~= 1 then error("Expected boolean",2) end
-	api.comp.blink = bool
+	Emulator.state.blink = bool
 	Screen.dirty = true
 end
 function api.term.scroll(...)
@@ -438,7 +438,7 @@ function api.term.scroll(...)
 		else
 			for x = 1, _conf.terminal_width do
 				Screen.textB[y][x] = " "
-				Screen.backgroundColourB[y][x] = api.comp.bg
+				Screen.backgroundColourB[y][x] = Emulator.state.bg
 				Screen.textColourB[y][x] = 1 -- Don't need to bother setting text color
 			end
 		end
@@ -461,7 +461,6 @@ function tablecopy(orig)
 end
 
 api.cclite = {}
-api.cclite.peripherals = {}
 if _conf.enableAPI_cclite then
 	function api.cclite.peripheralAttach(sSide, sType)
 		if type(sSide) ~= "string" or type(sType) ~= "string" then
@@ -470,20 +469,20 @@ if _conf.enableAPI_cclite then
 		if not peripheral.base[sType] then
 			error("No virtual peripheral of type " .. sType,2)
 		end
-		if api.cclite.peripherals[sSide] then
+		if Emulator.state.peripherals[sSide] then
 			error("Peripheral already attached to " .. sSide,2)
 		end
-		api.cclite.peripherals[sSide] = peripheral.base[sType](sSide)
-		if api.cclite.peripherals[sSide] ~= nil then
-			local methods = api.cclite.peripherals[sSide].getMethods()
-			api.cclite.peripherals[sSide].cache = {}
+		Emulator.state.peripherals[sSide] = peripheral.base[sType](sSide)
+		if Emulator.state.peripherals[sSide] ~= nil then
+			local methods = Emulator.state.peripherals[sSide].getMethods()
+			Emulator.state.peripherals[sSide].cache = {}
 			for i = 1,#methods do
-				api.cclite.peripherals[sSide].cache[methods[i]] = true
+				Emulator.state.peripherals[sSide].cache[methods[i]] = true
 			end
-			local ccliteMethods = api.cclite.peripherals[sSide].ccliteGetMethods()
-			api.cclite.peripherals[sSide].ccliteCache = {}
+			local ccliteMethods = Emulator.state.peripherals[sSide].ccliteGetMethods()
+			Emulator.state.peripherals[sSide].ccliteCache = {}
 			for i = 1,#ccliteMethods do
-				api.cclite.peripherals[sSide].ccliteCache[ccliteMethods[i]] = true
+				Emulator.state.peripherals[sSide].ccliteCache[ccliteMethods[i]] = true
 			end
 			table.insert(Emulator.eventQueue, {"peripheral",sSide})
 		else
@@ -492,22 +491,22 @@ if _conf.enableAPI_cclite then
 	end
 	function api.cclite.peripheralDetach(sSide)
 		if type(sSide) ~= "string" then error("Expected string",2) end
-		if not api.cclite.peripherals[sSide] then
+		if not Emulator.state.peripherals[sSide] then
 			error("No peripheral attached to " .. sSide,2)
 		end
-		api.cclite.peripherals[sSide] = nil
+		Emulator.state.peripherals[sSide] = nil
 		table.insert(Emulator.eventQueue, {"peripheral_detach",sSide})
 	end
 	function api.cclite.getMethods(sSide)
 		if type(sSide) ~= "string" then error("Expected string",2) end
-		if api.cclite.peripherals[sSide] then return api.cclite.peripherals[sSide].ccliteGetMethods() end
+		if Emulator.state.peripherals[sSide] then return Emulator.state.peripherals[sSide].ccliteGetMethods() end
 		return
 	end
 	function api.cclite.call(sSide, sMethod, ...)
 		if type(sSide) ~= "string" then error("Expected string",2) end
 		if type(sMethod) ~= "string" then error("Expected string, string",2) end
-		if not api.cclite.peripherals[sSide] then error("No peripheral attached",2) end
-		return api.cclite.peripherals[sSide].ccliteCall(sMethod, ...)
+		if not Emulator.state.peripherals[sSide] then error("No peripheral attached",2) end
+		return Emulator.state.peripherals[sSide].ccliteCall(sMethod, ...)
 	end
 	function api.cclite.message(sMessage)
 		if type(sMessage) ~= "string" then error("Expected string",2) end
@@ -558,7 +557,7 @@ end
 
 api.os = {}
 function api.os.clock()
-	return tonumber(string.format("%0.2f",math.floor(love.timer.getTime()*20)/20 - api.comp.startTime))
+	return tonumber(string.format("%0.2f",math.floor(love.timer.getTime()*20)/20 - Emulator.state.startTime))
 end
 function api.os.time()
 	return math.floor((os.clock()*0.02)%24*1000)/1000
@@ -568,10 +567,10 @@ function api.os.day()
 end
 function api.os.setComputerLabel(label)
 	if type(label) ~= "string" and type(label) ~= "nil" then error("Expected string or nil",2) end
-	api.comp.label = label
+	Emulator.state.label = label
 end
 function api.os.getComputerLabel()
-	return api.comp.label
+	return Emulator.state.label
 end
 function api.os.queueEvent(event, ...)
 	if type(event) ~= "string" then error("Expected string",2) end
@@ -618,25 +617,25 @@ end
 api.peripheral = {}
 function api.peripheral.isPresent(sSide)
 	if type(sSide) ~= "string" then error("Expected string",2) end
-	return api.cclite.peripherals[sSide] ~= nil
+	return Emulator.state.peripherals[sSide] ~= nil
 end
 function api.peripheral.getType(sSide)
 	if type(sSide) ~= "string" then error("Expected string",2) end
-	if api.cclite.peripherals[sSide] then return peripheral.types[api.cclite.peripherals[sSide].type] end
+	if Emulator.state.peripherals[sSide] then return peripheral.types[Emulator.state.peripherals[sSide].type] end
 	return
 end
 function api.peripheral.getMethods(sSide)
 	if type(sSide) ~= "string" then error("Expected string",2) end
-	if api.cclite.peripherals[sSide] then return api.cclite.peripherals[sSide].getMethods() end
+	if Emulator.state.peripherals[sSide] then return Emulator.state.peripherals[sSide].getMethods() end
 	return
 end
 function api.peripheral.call(sSide, sMethod, ...)
 	if type(sSide) ~= "string" or type(sMethod) ~= "string" then error("Expected string, string",2) end
-	if not api.cclite.peripherals[sSide] then error("No peripheral attached",2) end
-	if not api.cclite.peripherals[sSide].cache[sMethod] then
+	if not Emulator.state.peripherals[sSide] then error("No peripheral attached",2) end
+	if not Emulator.state.peripherals[sSide].cache[sMethod] then
 		error("No such method " .. sMethod,2)
 	end
-	return api.cclite.peripherals[sSide].call(sMethod, ...)
+	return Emulator.state.peripherals[sSide].call(sMethod, ...)
 end
 
 api.fs = {}
@@ -1104,15 +1103,6 @@ function api.bit.bnot(n)
 end
 
 function api.init() -- Called after this file is loaded! Important. Else api.x is not defined
-	api.comp = {
-		cursorX = 1,
-		cursorY = 1,
-		bg = 32768,
-		fg = 1,
-		blink = false,
-		label = nil,
-		startTime = math.floor(love.timer.getTime()*20)/20
-	}
 	api.env = {
 		_VERSION = "Luaj-jse 2.0.3",
 		tostring = api.tostring,

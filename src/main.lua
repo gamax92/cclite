@@ -203,6 +203,16 @@ Emulator = {
 	},
 	eventQueue = {},
 	lastUpdateClock = os.clock(),
+	state = {
+		cursorX = 1,
+		cursorY = 1,
+		bg = 32768,
+		fg = 1,
+		blink = false,
+		label = nil,
+		startTime = math.floor(love.timer.getTime()*20)/20,
+		peripherals = {}
+	},
 	minecraft = {
 		time = 0,
 		day = 0,
@@ -226,6 +236,12 @@ function Emulator:start()
 	end
 	Screen.dirty = true
 	api.init()
+	Emulator.state.cursorX = 1
+	Emulator.state.cursorY = 1
+	Emulator.state.bg = 32768
+	Emulator.state.fg = 1
+	Emulator.state.blink = false
+	Emulator.state.startTime = math.floor(love.timer.getTime()*20)/20
 
 	local fn, err = loadstring(love.filesystem.read("/lua/bios.lua"),"@bios")
 
@@ -242,12 +258,6 @@ function Emulator:start()
 end
 
 function Emulator:stop(reboot)
-	-- Detach all peripherals
-	for k,v in pairs(api.cclite.peripherals) do
-		if v.detach ~= nil then v.detach() end
-	end
-	api.cclite.peripherals = {}
-	
 	self.proc = nil
 	self.running = false
 	self.reboot = reboot
@@ -457,14 +467,14 @@ function Emulator:update()
 			self:stop(true)
 		end)
 
-	if api.comp.blink then
+	if Emulator.state.blink then
 		if Screen.lastCursor == nil then
 			Screen.lastCursor = now
 		end
 		if now - Screen.lastCursor >= 0.25 then
 			Screen.showCursor = not Screen.showCursor
 			Screen.lastCursor = now
-			if api.comp.cursorY >= 1 and api.comp.cursorY <= _conf.terminal_height and api.comp.cursorX >= 1 and api.comp.cursorX <= _conf.terminal_width then
+			if Emulator.state.cursorY >= 1 and Emulator.state.cursorY <= _conf.terminal_height and Emulator.state.cursorX >= 1 and Emulator.state.cursorX <= _conf.terminal_width then
 				Screen.dirty = true
 			end
 		end

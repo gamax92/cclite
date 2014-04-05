@@ -407,10 +407,10 @@ function love.load()
 		options = {
 			{"Help",function() end},
 			{},
-			{"Forum topic",function() openLocation("http://www.computercraft.info/forums2/index.php?/topic/16823-/") end},
-			{"CCLite Wiki",function() openLocation("https://github.com/gamax92/cclite/wiki/_pages") end},
-			{"Report a bug",function() openLocation("https://github.com/gamax92/cclite/issues") end},
-			{"View the code",function() openLocation("https://github.com/gamax92/cclite") end},
+			{"Forum topic",function() love.system.openURL("http://www.computercraft.info/forums2/index.php?/topic/16823-/") end},
+			{"CCLite Wiki",function() love.system.openURL("https://github.com/gamax92/cclite/wiki/_pages") end},
+			{"Report a bug",function() love.system.openURL("https://github.com/gamax92/cclite/issues") end},
+			{"View the code",function() love.system.openURL("https://github.com/gamax92/cclite") end},
 			{},
 			{"About",ui_aboutBox}
 		}

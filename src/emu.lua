@@ -70,6 +70,11 @@ function emu.newComputer(color,id)
 	end
 
 	function Computer:stop(reboot)
+		-- Detach all peripherals
+		for k,v in pairs(self.api.cclite.peripherals) do
+			if v.detach ~= nil then v.detach() end
+		end
+		
 		self.proc = nil
 		self.running = false
 		self.reboot = reboot

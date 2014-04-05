@@ -17,6 +17,16 @@ function emu.newComputer(color,id)
 		},
 		eventQueue = {},
 		lastUpdateClock = os.clock(),
+		state = {
+			cursorX = 1,
+			cursorY = 1,
+			bg = 32768,
+			fg = 1,
+			blink = false,
+			label = nil,
+			startTime = math.floor(love.timer.getTime()*20)/20,
+			peripherals = {}
+		},
 		minecraft = {
 			time = 0,
 			day = 0,
@@ -54,6 +64,12 @@ function emu.newComputer(color,id)
 		end
 		Screen.dirty = true
 		self.api = api.init(self,color,id)
+		self.state.cursorX = 1
+		self.state.cursorY = 1
+		self.state.bg = 32768
+		self.state.fg = 1
+		self.state.blink = false
+		self.state.startTime = math.floor(love.timer.getTime()*20)/20
 
 		local fn, err = loadstring(love.filesystem.read("/lua/bios.lua"),"@bios")
 
@@ -70,11 +86,6 @@ function emu.newComputer(color,id)
 	end
 
 	function Computer:stop(reboot)
-		-- Detach all peripherals
-		for k,v in pairs(self.api.cclite.peripherals) do
-			if v.detach ~= nil then v.detach() end
-		end
-		
 		self.proc = nil
 		self.running = false
 		self.reboot = reboot
@@ -134,14 +145,14 @@ function emu.newComputer(color,id)
 				self:stop(true)
 			end)
 
-		if self.api.comp.blink then
+		if self.state.blink then
 			if Screen.lastCursor == nil then
 				Screen.lastCursor = now
 			end
 			if now - Screen.lastCursor >= 0.25 then
 				Screen.showCursor = not Screen.showCursor
 				Screen.lastCursor = now
-				if self.api.comp.cursorY >= 1 and self.api.comp.cursorY <= _conf.terminal_height and self.api.comp.cursorX >= 1 and self.api.comp.cursorX <= _conf.terminal_width then
+				if self.state.cursorY >= 1 and self.state.cursorY <= _conf.terminal_height and self.state.cursorX >= 1 and self.state.cursorX <= _conf.terminal_width then
 					Screen.dirty = true
 				end
 			end
@@ -220,9 +231,10 @@ function emu.newComputer(color,id)
 	for k,v in pairs(internals) do
 		if v.type == "closebutton" then
 			function v.OnClick()
-				for k,v in pairs(Computer.api.cclite.peripherals) do
+				for k,v in pairs(Computer.state.peripherals) do
 					if v.detach ~= nil then v.detach() end
 				end
+				Computer.state.peripherals = {}
 				Computer.frame:Remove()
 				Computer.dead = true
 			end

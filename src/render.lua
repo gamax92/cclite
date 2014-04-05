@@ -147,9 +147,9 @@ function Screen:draw(Emulator)
 		end
 
 		-- Render cursor
-		if Emulator.api.comp.blink and self.showCursor and Emulator.api.comp.cursorX >= 1 and Emulator.api.comp.cursorX <= _conf.terminal_width and Emulator.api.comp.cursorY >= 1 and Emulator.api.comp.cursorY <= _conf.terminal_height then
-			setColor(COLOUR_CODE[Emulator.api.comp.fg])
-			lprint("_", (Emulator.api.comp.cursorX - 1) * self.pixelWidth + tOffset["_"], (Emulator.api.comp.cursorY - 1) * self.pixelHeight, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
+		if Emulator.state.blink and self.showCursor and Emulator.state.cursorX >= 1 and Emulator.state.cursorX <= _conf.terminal_width and Emulator.state.cursorY >= 1 and Emulator.state.cursorY <= _conf.terminal_height then
+			setColor(COLOUR_CODE[Emulator.state.fg])
+			lprint("_", (Emulator.state.cursorX - 1) * self.pixelWidth + tOffset["_"], (Emulator.state.cursorY - 1) * self.pixelHeight, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 		end
 		love.graphics.translate(-_conf.terminal_guiScale, -_conf.terminal_guiScale)
 	end

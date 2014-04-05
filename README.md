@@ -70,8 +70,6 @@ Have virtual Disk Drives work with Treasure disks
 
 Add Pocket Computers support
 
-Multiple peripheral windows for the same peripheral can appear
-
 **Add in missing globals:**
 
   * __inext

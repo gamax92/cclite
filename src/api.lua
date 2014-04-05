@@ -333,20 +333,20 @@ function api.init(Computer,color,id)
 		for y = 1, _conf.terminal_height do
 			for x = 1, _conf.terminal_width do
 				Computer.textB[y][x] = " "
-				Computer.backgroundColourB[y][x] = tmpapi.comp.bg
+				Computer.backgroundColourB[y][x] = Computer.state.bg
 				Computer.textColourB[y][x] = 1
 			end
 		end
 		Screen.dirty = true
 	end
 	function tmpapi.term.clearLine()
-		if tmpapi.comp.cursorY > _conf.terminal_height or tmpapi.comp.cursorY < 1 then
+		if Computer.state.cursorY > _conf.terminal_height or Computer.state.cursorY < 1 then
 			return
 		end
 		for x = 1, _conf.terminal_width do
-			Computer.textB[tmpapi.comp.cursorY][x] = " "
-			Computer.backgroundColourB[tmpapi.comp.cursorY][x] = tmpapi.comp.bg
-			Computer.textColourB[tmpapi.comp.cursorY][x] = 1
+			Computer.textB[Computer.state.cursorY][x] = " "
+			Computer.backgroundColourB[Computer.state.cursorY][x] = Computer.state.bg
+			Computer.textColourB[Computer.state.cursorY][x] = 1
 		end
 		Screen.dirty = true
 	end
@@ -354,34 +354,34 @@ function api.init(Computer,color,id)
 		return _conf.terminal_width, _conf.terminal_height
 	end
 	function tmpapi.term.getCursorPos()
-		return tmpapi.comp.cursorX, tmpapi.comp.cursorY
+		return Computer.state.cursorX, Computer.state.cursorY
 	end
 	function tmpapi.term.setCursorPos(...)
 		local x, y = ...
 		if type(x) ~= "number" or type(y) ~= "number" or select("#",...) ~= 2 then error("Expected number, number",2) end
-		tmpapi.comp.cursorX = math.floor(x)
-		tmpapi.comp.cursorY = math.floor(y)
+		Computer.state.cursorX = math.floor(x)
+		Computer.state.cursorY = math.floor(y)
 		Screen.dirty = true
 	end
 	function tmpapi.term.write(text)
 		text = serialize(text)
-		if tmpapi.comp.cursorY > _conf.terminal_height or tmpapi.comp.cursorY < 1 or tmpapi.comp.cursorX > _conf.terminal_width then
-			tmpapi.comp.cursorX = tmpapi.comp.cursorX + #text
+		if Computer.state.cursorY > _conf.terminal_height or Computer.state.cursorY < 1 or Computer.state.cursorX > _conf.terminal_width then
+			Computer.state.cursorX = Computer.state.cursorX + #text
 			return
 		end
 
 		for i = 1, #text do
 			local char = text:sub(i, i)
-			if tmpapi.comp.cursorX + i - 1 >= 1 then
-				if tmpapi.comp.cursorX + i - 1 > _conf.terminal_width then
+			if Computer.state.cursorX + i - 1 >= 1 then
+				if Computer.state.cursorX + i - 1 > _conf.terminal_width then
 					break
 				end
-				Computer.textB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = char
-				Computer.textColourB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = tmpapi.comp.fg
-				Computer.backgroundColourB[tmpapi.comp.cursorY][tmpapi.comp.cursorX + i - 1] = tmpapi.comp.bg
+				Computer.textB[Computer.state.cursorY][Computer.state.cursorX + i - 1] = char
+				Computer.textColourB[Computer.state.cursorY][Computer.state.cursorX + i - 1] = Computer.state.fg
+				Computer.backgroundColourB[Computer.state.cursorY][Computer.state.cursorX + i - 1] = Computer.state.bg
 			end
 		end
-		tmpapi.comp.cursorX = tmpapi.comp.cursorX + #text
+		Computer.state.cursorX = Computer.state.cursorX + #text
 		Screen.dirty = true
 	end
 	function tmpapi.term.setTextColor(...)
@@ -394,7 +394,7 @@ function api.init(Computer,color,id)
 		if num ~= 1 and num ~= 32768 and not color then
 			error("Colour not supported",2)
 		end
-		tmpapi.comp.fg = num
+		Computer.state.fg = num
 		Screen.dirty = true
 	end
 	function tmpapi.term.setBackgroundColor(...)
@@ -407,14 +407,14 @@ function api.init(Computer,color,id)
 		if num ~= 1 and num ~= 32768 and not color then
 			error("Colour not supported",2)
 		end
-		tmpapi.comp.bg = num
+		Computer.state.bg = num
 	end
 	function tmpapi.term.isColor()
 		return color
 	end
 	function tmpapi.term.setCursorBlink(bool)
 		if type(bool) ~= "boolean" then error("Expected boolean",2) end
-		tmpapi.comp.blink = bool
+		Computer.state.blink = bool
 		Screen.dirty = true
 	end
 	function tmpapi.term.scroll(...)
@@ -445,7 +445,7 @@ function api.init(Computer,color,id)
 			else
 				for x = 1, _conf.terminal_width do
 					Computer.textB[y][x] = " "
-					Computer.backgroundColourB[y][x] = tmpapi.comp.bg
+					Computer.backgroundColourB[y][x] = Computer.state.bg
 					Computer.textColourB[y][x] = 1 -- Don't need to bother setting text color
 				end
 			end
@@ -468,7 +468,6 @@ function api.init(Computer,color,id)
 	end
 
 	tmpapi.cclite = {}
-	tmpapi.cclite.peripherals = {}
 	if _conf.enableAPI_cclite then
 		function tmpapi.cclite.peripheralAttach(sSide, sType)
 			if type(sSide) ~= "string" or type(sType) ~= "string" then
@@ -477,20 +476,20 @@ function api.init(Computer,color,id)
 			if not peripheral.base[sType] then
 				error("No virtual peripheral of type " .. sType,2)
 			end
-			if tmpapi.cclite.peripherals[sSide] then
+			if Computer.state.peripherals[sSide] then
 				error("Peripheral already attached to " .. sSide,2)
 			end
-			tmpapi.cclite.peripherals[sSide] = peripheral.base[sType](Computer,sSide)
-			if tmpapi.cclite.peripherals[sSide] ~= nil then
-				local methods = tmpapi.cclite.peripherals[sSide].getMethods()
-				tmpapi.cclite.peripherals[sSide].cache = {}
+			Computer.state.peripherals[sSide] = peripheral.base[sType](Computer,sSide)
+			if Computer.state.peripherals[sSide] ~= nil then
+				local methods = Computer.state.peripherals[sSide].getMethods()
+				Computer.state.peripherals[sSide].cache = {}
 				for i = 1,#methods do
-					tmpapi.cclite.peripherals[sSide].cache[methods[i]] = true
+					Computer.state.peripherals[sSide].cache[methods[i]] = true
 				end
-				local ccliteMethods = tmpapi.cclite.peripherals[sSide].ccliteGetMethods()
-				tmpapi.cclite.peripherals[sSide].ccliteCache = {}
+				local ccliteMethods = Computer.state.peripherals[sSide].ccliteGetMethods()
+				Computer.state.peripherals[sSide].ccliteCache = {}
 				for i = 1,#ccliteMethods do
-					tmpapi.cclite.peripherals[sSide].ccliteCache[ccliteMethods[i]] = true
+					Computer.state.peripherals[sSide].ccliteCache[ccliteMethods[i]] = true
 				end
 				table.insert(Computer.eventQueue, {"peripheral",sSide})
 			else
@@ -499,25 +498,25 @@ function api.init(Computer,color,id)
 		end
 		function tmpapi.cclite.peripheralDetach(sSide)
 			if type(sSide) ~= "string" then error("Expected string",2) end
-			if not tmpapi.cclite.peripherals[sSide] then
+			if not Computer.state.peripherals[sSide] then
 				error("No peripheral attached to " .. sSide,2)
 			end
-			if tmpapi.cclite.peripherals[sSide].detach ~= nil then
-				tmpapi.cclite.peripherals[sSide].detach()
+			if Computer.state.peripherals[sSide].detach ~= nil then
+				Computer.state.peripherals[sSide].detach()
 			end
-			tmpapi.cclite.peripherals[sSide] = nil
+			Computer.state.peripherals[sSide] = nil
 			table.insert(Computer.eventQueue, {"peripheral_detach",sSide})
 		end
 		function tmpapi.cclite.getMethods(sSide)
 			if type(sSide) ~= "string" then error("Expected string",2) end
-			if tmpapi.cclite.peripherals[sSide] then return tmpapi.cclite.peripherals[sSide].ccliteGetMethods() end
+			if Computer.state.peripherals[sSide] then return Computer.state.peripherals[sSide].ccliteGetMethods() end
 			return
 		end
 		function tmpapi.cclite.call(sSide, sMethod, ...)
 			if type(sSide) ~= "string" then error("Expected string",2) end
 			if type(sMethod) ~= "string" then error("Expected string, string",2) end
-			if not tmpapi.cclite.peripherals[sSide] then error("No peripheral attached",2) end
-			return tmpapi.cclite.peripherals[sSide].ccliteCall(sMethod, ...)
+			if not Computer.state.peripherals[sSide] then error("No peripheral attached",2) end
+			return Computer.state.peripherals[sSide].ccliteCall(sMethod, ...)
 		end
 		function tmpapi.cclite.message(sMessage)
 			if type(sMessage) ~= "string" then error("Expected string",2) end
@@ -568,7 +567,7 @@ function api.init(Computer,color,id)
 
 	tmpapi.os = {}
 	function tmpapi.os.clock()
-		return tonumber(string.format("%0.2f",math.floor(love.timer.getTime()*20)/20 - tmpapi.comp.startTime))
+		return tonumber(string.format("%0.2f",math.floor(love.timer.getTime()*20)/20 - Computer.state.startTime))
 	end
 	function tmpapi.os.time()
 		return math.floor((os.clock()*0.02)%24*1000)/1000
@@ -581,10 +580,10 @@ function api.init(Computer,color,id)
 	end
 	function tmpapi.os.setComputerLabel(label)
 		if type(label) ~= "string" and type(label) ~= "nil" then error("Expected string or nil",2) end
-		tmpapi.comp.label = label
+		Computer.state.label = label
 	end
 	function tmpapi.os.getComputerLabel()
-		return tmpapi.comp.label
+		return Computer.state.label
 	end
 	function tmpapi.os.queueEvent(event, ...)
 		if type(event) ~= "string" then error("Expected string",2) end
@@ -631,25 +630,25 @@ function api.init(Computer,color,id)
 	tmpapi.peripheral = {}
 	function tmpapi.peripheral.isPresent(sSide)
 		if type(sSide) ~= "string" then error("Expected string",2) end
-		return tmpapi.cclite.peripherals[sSide] ~= nil
+		return Computer.state.peripherals[sSide] ~= nil
 	end
 	function tmpapi.peripheral.getType(sSide)
 		if type(sSide) ~= "string" then error("Expected string",2) end
-		if tmpapi.cclite.peripherals[sSide] then return peripheral.types[tmpapi.cclite.peripherals[sSide].type] end
+		if Computer.state.peripherals[sSide] then return peripheral.types[Computer.state.peripherals[sSide].type] end
 		return
 	end
 	function tmpapi.peripheral.getMethods(sSide)
 		if type(sSide) ~= "string" then error("Expected string",2) end
-		if tmpapi.cclite.peripherals[sSide] then return tmpapi.cclite.peripherals[sSide].getMethods() end
+		if Computer.state.peripherals[sSide] then return Computer.state.peripherals[sSide].getMethods() end
 		return
 	end
 	function tmpapi.peripheral.call(sSide, sMethod, ...)
 		if type(sSide) ~= "string" or type(sMethod) ~= "string" then error("Expected string, string",2) end
-		if not tmpapi.cclite.peripherals[sSide] then error("No peripheral attached",2) end
-		if not tmpapi.cclite.peripherals[sSide].cache[sMethod] then
+		if not Computer.state.peripherals[sSide] then error("No peripheral attached",2) end
+		if not Computer.state.peripherals[sSide].cache[sMethod] then
 			error("No such method " .. sMethod,2)
 		end
-		return tmpapi.cclite.peripherals[sSide].call(sMethod, ...)
+		return Computer.state.peripherals[sSide].call(sMethod, ...)
 	end
 
 	tmpapi.fs = {}
@@ -1114,15 +1113,6 @@ function api.init(Computer,color,id)
 		return tmpapi.bit.norm(bit.bnot(n))
 	end
 
-	tmpapi.comp = {
-		cursorX = 1,
-		cursorY = 1,
-		bg = 32768,
-		fg = 1,
-		blink = false,
-		label = nil,
-		startTime = math.floor(love.timer.getTime()*20)/20
-	}
 	tmpapi.env = {
 		_VERSION = "Luaj-jse 2.0.3",
 		tostring = tmpapi.tostring,

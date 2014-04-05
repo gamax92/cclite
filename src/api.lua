@@ -613,6 +613,14 @@ function api.init(Computer,color,id)
 		Computer.actions.alarms[Computer.actions.lastAlarm] = alarm
 		return Computer.actions.lastAlarm
 	end
+	function tmpapi.os.cancelTimer(id)
+		if type(id) ~= "number" then error("Expected number",2) end
+		Computer.actions.timers[id] = nil
+	end
+	function tmpapi.os.cancelAlarm(id)
+		if type(id) ~= "number" then error("Expected number",2) end
+		Computer.actions.alarms[id] = nil
+	end
 	function tmpapi.os.shutdown()
 		Computer:stop(false)
 	end
@@ -642,13 +650,6 @@ function api.init(Computer,color,id)
 			error("No such method " .. sMethod,2)
 		end
 		return tmpapi.cclite.peripherals[sSide].call(sMethod, ...)
-	end
-	function tmpapi.peripheral.getNames()
-		local names = {}
-		for k,v in pairs(tmpapi.cclite.peripherals) do
-			table.insert(names,k)
-		end
-		return names
 	end
 
 	tmpapi.fs = {}
@@ -697,6 +698,34 @@ function api.init(Computer,color,id)
 		end
 	end
 
+	local function recurse_spec(results, path, spec)
+		local segment = spec:match('([^/]*)'):gsub('/', '')
+		local pattern = '^' .. segment:gsub('[*]', '.+'):gsub('?', '.') .. '$'
+
+		if api.fs.isDir(path) then
+			for _, file in ipairs(api.fs.list(path)) do
+				if file:match(pattern) then
+					local f = api.fs.combine(path, file)
+
+					if api.fs.isDir(f) then
+						recurse_spec(results, f, spec:sub(#segment + 2))
+					elseif spec == segment then
+						table.insert(results, f)
+					end
+				end
+			end
+		end
+	end
+
+	function tmpapi.fs.find(...)
+		local spec = ...
+		if type(spec) ~= "string" or select("#",...) ~= 1 then
+			error("Expected string",2)
+		end
+		local results = {}
+		recurse_spec(results, '', spec)
+		return results
+	end
 	function tmpapi.fs.open(...)
 		local path, mode = ...
 		if type(path) ~= "string" or type(mode) ~= "string" or select("#",...) ~= 2 then
@@ -1139,6 +1168,7 @@ function api.init(Computer,color,id)
 			isColour = tmpapi.term.isColor,
 		},
 		fs = {
+			find = tmpapi.fs.find,
 			open = tmpapi.fs.open,
 			list = tmpapi.fs.list,
 			exists = tmpapi.fs.exists,
@@ -1164,6 +1194,8 @@ function api.init(Computer,color,id)
 			queueEvent = tmpapi.os.queueEvent,
 			startTimer = tmpapi.os.startTimer,
 			setAlarm = tmpapi.os.setAlarm,
+			cancelTimer = tmpapi.os.cancelTimer,
+			cancelAlarm = tmpapi.os.cancelAlarm,
 			time = tmpapi.os.time,
 			day = tmpapi.os.day,
 			shutdown = tmpapi.os.shutdown,
@@ -1174,7 +1206,6 @@ function api.init(Computer,color,id)
 			getType = tmpapi.peripheral.getType,
 			getMethods = tmpapi.peripheral.getMethods,
 			call = tmpapi.peripheral.call,
-			getNames = tmpapi.peripheral.getNames,
 		},
 		redstone = {
 			getSides = tmpapi.redstone.getSides,
@@ -1184,9 +1215,12 @@ function api.init(Computer,color,id)
 			getBundledOutput = tmpapi.redstone.getBundledOutput,
 			getAnalogInput = tmpapi.redstone.getAnalogInput,
 			getAnalogOutput = tmpapi.redstone.getAnalogOutput,
+			getAnalogueInput = tmpapi.redstone.getAnalogInput,
+			getAnalogueOutput = tmpapi.redstone.getAnalogOutput,
 			setOutput = tmpapi.redstone.setOutput,
 			setBundledOutput = tmpapi.redstone.setBundledOutput,
 			setAnalogOutput = tmpapi.redstone.setAnalogOutput,
+			setAnalogueOutput = tmpapi.redstone.setAnalogOutput,
 			testBundledInput = tmpapi.redstone.testBundledInput,
 		},
 		bit = {
@@ -1215,9 +1249,6 @@ function api.init(Computer,color,id)
 			traceback = debug.traceback,
 		}
 	end
-	tmpapi.env.redstone.getAnalogueInput = tmpapi.env.redstone.getAnalogInput
-	tmpapi.env.redstone.getAnalogueOutput = tmpapi.env.redstone.getAnalogOutput
-	tmpapi.env.redstone.setAnalogueOutput = tmpapi.env.redstone.setAnalogOutput
 	tmpapi.env.rs = tmpapi.env.redstone
 	tmpapi.env.math.mod = nil
 	tmpapi.env.string.gfind = nil

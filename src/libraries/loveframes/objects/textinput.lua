@@ -485,14 +485,14 @@ function newobject:keypressed(key, unicode)
 	if (loveframes.util.IsCtrlDown()) and focus then
 		if key == "a" then
 			self.alltextselected = true
-		elseif key == "c" and alltextselected and version == "0.9.0" then
+		elseif key == "c" and alltextselected and (version == "0.9.0" or version == "0.9.1") then
 			local text = self:GetText()
 			local oncopy = self.OnCopy
 			love.system.setClipboardText(text)
 			if oncopy then
 				oncopy(self, text)
 			end
-		elseif key == "x" and alltextselected and version == "0.9.0" and editable then
+		elseif key == "x" and alltextselected and (version == "0.9.0" or version == "0.9.1") and editable then
 			local text = self:GetText()
 			local oncut = self.OnCut
 			love.system.setClipboardText(text)
@@ -501,7 +501,7 @@ function newobject:keypressed(key, unicode)
 			else
 				self:SetText("")
 			end
-		elseif key == "v" and version == "0.9.0" and editable then
+		elseif key == "v" and (version == "0.9.0" or version == "0.9.1") and editable then
 			self:Paste()
 		end
 	else
@@ -857,7 +857,7 @@ function newobject:RunKey(key, unicode, is_text)
 		end
 	end
 	
-	if love._version == "0.9.0" then
+	if love._version == "0.9.0" or love._version == "0.9.1" then
 		self.unicode = 0
 	end
 	
@@ -1798,7 +1798,7 @@ function newobject:Copy()
 
 	local version = love._version
 	
-	if version == "0.9.0" then
+	if (version == "0.9.0" or version == "0.9.1") then
 		local text = self:GetText()
 		love.system.setClipboardText(text)
 	end

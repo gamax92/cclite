@@ -47,7 +47,7 @@ function loveframes.load()
 	
 	local loveversion = love._version
 	
-	if loveversion ~= "0.8.0" and loveversion ~= "0.9.0" then
+	if loveversion ~= "0.8.0" and loveversion ~= "0.9.0" and loveversion ~= "0.9.1" then
 		error("Love Frames is not compatible with your version of LOVE.")
 	end
 	
@@ -124,7 +124,7 @@ function loveframes.update(dt)
 		end
 	end
 	
-	if version == "0.9.0" then
+	if version == "0.9.0" or version == "0.9.1" then
 		local hoverobject = loveframes.hoverobject
 		local arrow = love.mouse.getSystemCursor("arrow")
 		local curcursor = love.mouse.getCursor()

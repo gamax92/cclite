@@ -64,10 +64,11 @@ Add in more error checking
 
 Make a functional virtual redstone system
 
-
 Make peripheralAttach only add valid sides
 
 Have virtual Disk Drives work with Treasure disks
+
+Add Pocket Computers support
 
 **Add in missing globals:**
 

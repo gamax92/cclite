@@ -600,6 +600,14 @@ function api.os.setAlarm(...)
 	Emulator.actions.alarms[Emulator.actions.lastAlarm] = alarm
 	return Emulator.actions.lastAlarm
 end
+function api.os.cancelTimer(id)
+	if type(id) ~= "number" then error("Expected number",2) end
+	Emulator.actions.timers[id] = nil
+end
+function api.os.cancelAlarm(id)
+	if type(id) ~= "number" then error("Expected number",2) end
+	Emulator.actions.alarms[id] = nil
+end
 function api.os.shutdown()
 	Emulator:stop(false)
 end
@@ -629,13 +637,6 @@ function api.peripheral.call(sSide, sMethod, ...)
 		error("No such method " .. sMethod,2)
 	end
 	return api.cclite.peripherals[sSide].call(sMethod, ...)
-end
-function api.peripheral.getNames()
-	local names = {}
-	for k,v in pairs(api.cclite.peripherals) do
-		table.insert(names,k)
-	end
-	return names
 end
 
 api.fs = {}
@@ -684,6 +685,34 @@ local function contains(pathA, pathB)
 	end
 end
 
+local function recurse_spec(results, path, spec)
+	local segment = spec:match('([^/]*)'):gsub('/', '')
+	local pattern = '^' .. segment:gsub('[*]', '.+'):gsub('?', '.') .. '$'
+
+	if api.fs.isDir(path) then
+		for _, file in ipairs(api.fs.list(path)) do
+			if file:match(pattern) then
+				local f = api.fs.combine(path, file)
+
+				if api.fs.isDir(f) then
+					recurse_spec(results, f, spec:sub(#segment + 2))
+				elseif spec == segment then
+					table.insert(results, f)
+				end
+			end
+		end
+	end
+end
+
+function api.fs.find(...)
+	local spec = ...
+	if type(spec) ~= "string" or select("#",...) ~= 1 then
+		error("Expected string",2)
+	end
+	local results = {}
+	recurse_spec(results, '', spec)
+	return results
+end
 function api.fs.open(...)
 	local path, mode = ...
 	if type(path) ~= "string" or type(mode) ~= "string" or select("#",...) ~= 2 then
@@ -1129,6 +1158,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			isColour = api.term.isColor,
 		},
 		fs = {
+			find = api.fs.find,
 			open = api.fs.open,
 			list = api.fs.list,
 			exists = api.fs.exists,
@@ -1154,6 +1184,8 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			queueEvent = api.os.queueEvent,
 			startTimer = api.os.startTimer,
 			setAlarm = api.os.setAlarm,
+			cancelTimer = api.os.cancelTimer,
+			cancelAlarm = api.os.cancelAlarm,
 			time = api.os.time,
 			day = api.os.day,
 			shutdown = api.os.shutdown,
@@ -1164,7 +1196,6 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			getType = api.peripheral.getType,
 			getMethods = api.peripheral.getMethods,
 			call = api.peripheral.call,
-			getNames = api.peripheral.getNames,
 		},
 		redstone = {
 			getSides = api.redstone.getSides,
@@ -1174,9 +1205,12 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			getBundledOutput = api.redstone.getBundledOutput,
 			getAnalogInput = api.redstone.getAnalogInput,
 			getAnalogOutput = api.redstone.getAnalogOutput,
+			getAnalogueInput = api.redstone.getAnalogInput,
+			getAnalogueOutput = api.redstone.getAnalogOutput,
 			setOutput = api.redstone.setOutput,
 			setBundledOutput = api.redstone.setBundledOutput,
 			setAnalogOutput = api.redstone.setAnalogOutput,
+			setAnalogueOutput = api.redstone.setAnalogOutput,
 			testBundledInput = api.redstone.testBundledInput,
 		},
 		bit = {
@@ -1205,9 +1239,6 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			traceback = debug.traceback,
 		}
 	end
-	api.env.redstone.getAnalogueInput = api.env.redstone.getAnalogInput
-	api.env.redstone.getAnalogueOutput = api.env.redstone.getAnalogOutput
-	api.env.redstone.setAnalogueOutput = api.env.redstone.setAnalogOutput
 	api.env.rs = api.env.redstone
 	api.env.math.mod = nil
 	api.env.string.gfind = nil

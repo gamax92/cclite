@@ -1,6 +1,6 @@
 local messageCache = {}
 
-local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable emulation of buggy Clipboard handling\n	compat_faultyClip = true,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n}\n'
+local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n}\n'
 
 -- Load configuration
 local defaultConfFunc = loadstring(defaultConf,"@config")
@@ -36,7 +36,6 @@ function validateConfig(cfgData,setup)
 			complain(type(_conf.terminal_guiScale) == "number", "Invalid value for _conf.terminal_guiScale", stat)
 			complain(type(_conf.cclite_showFPS) == "boolean", "Invalid value for _conf.cclite_showFPS", stat)
 			complain(type(_conf.lockfps) == "number", "Invalid value for _conf.lockfps", stat)
-			complain(type(_conf.compat_faultyClip) == "boolean", "Invalid value for _conf.compat_faultyClip", stat)
 			complain(type(_conf.useLuaSec) == "boolean", "Invalid value for _conf.useLuaSec", stat)
 			complain(type(_conf.useCRLF) == "boolean", "Invalid value for _conf.useCRLF", stat)
 			complain(type(_conf.cclite_updateChecker) == "boolean", "Invalid value for _conf.cclite_updateChecker", stat)
@@ -68,6 +67,10 @@ require("vfs")
 
 if _conf.compat_loadstringMask ~= nil then
 	Screen:message("_conf.compat_loadstringMask is obsolete")
+end
+
+if _conf.compat_faultyClip ~= nil then
+	Screen:message("_conf.compat_faultyClip is obsolete")
 end
 
 -- Test if HTTPS is working
@@ -390,14 +393,12 @@ function love.keypressed(key, isrepeat)
 
 	if love.keyboard.isDown("ctrl") and key == "v" then
 		local cliptext = love.system.getClipboardText()
-		cliptext = cliptext:gsub("\r\n","\n"):sub(1,127)
+		cliptext = cliptext:gsub("\r\n","\n"):sub(1,128)
 		local nloc = cliptext:find("\n") or -1
 		if nloc > 0 then
-			cliptext = cliptext:sub(1, nloc - (_conf.compat_faultyClip and 2 or 1))
+			cliptext = cliptext:sub(1, nloc - 1)
 		end
-		for i = 1,#cliptext do
-			love.textinput(cliptext:sub(i,i))
-		end
+		table.insert(Emulator.eventQueue, {"paste", cliptext})
 	elseif isrepeat and love.keyboard.isDown("ctrl") and (key == "t" or key == "s" or key == "r") then
 	elseif keys[key] then
 		table.insert(Emulator.eventQueue, {"key", keys[key]})

@@ -242,6 +242,12 @@ function Emulator:start()
 end
 
 function Emulator:stop(reboot)
+	-- Detach all peripherals
+	for k,v in pairs(api.cclite.peripherals) do
+		if v.detach ~= nil then v.detach() end
+	end
+	api.cclite.peripherals = {}
+	
 	self.proc = nil
 	self.running = false
 	self.reboot = reboot

@@ -1,6 +1,6 @@
 local messageCache = {}
 
-local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n	\n	-- Enable onscreen controls\n	mobileMode = true\n}\n'
+local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n	\n	-- Enable onscreen controls\n	mobileMode = true,\n	\n	--Mappings for controlpad\n	ctrlPad={\n		["top"] = "up",\n		["bottom"] = "down",\n		["left"] = "left",\n		["right"] = "right",\n		["center"] = " " -- This will simulate a space key press\n	}\n}\n'
 
 -- Load configuration
 local defaultConfFunc = loadstring(defaultConf,"@config")
@@ -40,6 +40,7 @@ function validateConfig(cfgData,setup)
 			complain(type(_conf.useCRLF) == "boolean", "Invalid value for _conf.useCRLF", stat)
 			complain(type(_conf.cclite_updateChecker) == "boolean", "Invalid value for _conf.cclite_updateChecker", stat)
 			complain(type(_conf.mobileMode) == "boolean", "Invalid value for _conf.mobileMode", stat)
+			complain(type(_conf.ctrlPad) == "table", "Invalid value for _conf.ctrlPad", stat)
 			if stat.bad == true then
 				_conf = cfgCache
 			elseif type(setup) == "function" then
@@ -359,22 +360,46 @@ end
 
 function love.mousepressed(x, y, button)
 	if x > 0 and x < Screen.sWidth and y > 0 and y < Screen.sHeight then -- Within screen bounds.
-		local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
-		local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
-
-		if button == "l" or button == "m" or button == "r" then
-			Emulator.mouse.isPressed = true
-			Emulator.mouse.lastTermX = termMouseX
-			Emulator.mouse.lastTermY = termMouseY
-			if button == "l" then button = 1
-			elseif button == "m" then button = 3
-			elseif button == "r" then button = 2
+		if controlPad then
+			if ((x - controlPad.x)^2 + (y - controlPad.y)^2 < controlPad.r^2) then
+				-- Click on control pad
+				if y <= controlPad.y - (controlPad.r / 3) then
+					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.top]})
+					if ChatAllowedCharacters[unicode:byte()] then
+						table.insert(Emulator.eventQueue, {"char", unicode})
+					end
+				end
+				if y >= controlPad.y + (controlPad.r / 3) then
+					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.bottom]})
+				end
+				if x <= controlPad.x - (controlPad.r / 3) then
+					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.left]})
+				end
+				if x >= controlPad.x + (controlPad.r / 3) then
+					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.right]})
+				end
+				if ((x - controlPad.x)^2 + (y - controlPad.y)^2 < (controlPad.r / 2)^2) then
+					table.insert(Emulater.eventQueue, {"key",keys[_conf.ctrlPad.center]})
+				end
 			end
-			table.insert(Emulator.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
-		elseif button == "wu" then -- Scroll up
-			table.insert(Emulator.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
-		elseif button == "wd" then -- Scroll down
-			table.insert(Emulator.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
+		else
+			local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
+			local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
+
+			if button == "l" or button == "m" or button == "r" then
+				Emulator.mouse.isPressed = true
+				Emulator.mouse.lastTermX = termMouseX
+				Emulator.mouse.lastTermY = termMouseY
+				if button == "l" then button = 1
+				elseif button == "m" then button = 3
+				elseif button == "r" then button = 2
+				end
+				table.insert(Emulator.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
+			elseif button == "wu" then -- Scroll up
+				table.insert(Emulator.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
+			elseif button == "wd" then -- Scroll down
+				table.insert(Emulator.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
+			end
 		end
 	end
 end

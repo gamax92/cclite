@@ -90,6 +90,8 @@ local function serializeImpl(t, tTracking)
 			return "Infinity"
 		elseif t == -math.huge then
 			return "-Infinity"
+		elseif t ~= t then
+			return "NaN"
 		else
 			return tostring(t):gsub("^[^e.]+%f[^0-9.]","%1.0"):gsub("e%+","e"):upper()
 		end

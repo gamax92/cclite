@@ -174,4 +174,17 @@ function Screen:draw()
 	if _conf.cclite_showFPS then
 		drawMessage("FPS: " .. Emulator.FPS, self.sWidth - (49 * _conf.terminal_guiScale), _conf.terminal_guiScale * 2)
 	end
+	if _conf.mobileMode then
+		local radius = 20 * _conf.terminal_guiScale
+		local x,y = radius + (6 * _conf.terminal_guiScale), love.window.getHeight()
+		y = y - radius - (6 * _conf.terminal_guiScale)
+		local r,g,b,a = love.graphics.getColor()
+		_G.controlPad ={}
+		_G.controlPad["x"] = x
+		_G.controlPad["y"] = y
+		_G.controlPad["r"] = radius
+		love.graphics.setColor(255,255,255,125)
+		love.graphics.circle("fill",x,y,radius, 100)
+		love.graphics.setColor(r,g,b,a)
+	end
 end

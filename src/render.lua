@@ -76,6 +76,7 @@ end
 Screen.font = love.graphics.newImageFont("res/minecraft.png",glyphs)
 Screen.font:setFilter("nearest","nearest")
 love.graphics.setFont(Screen.font)
+love.graphics.setLineWidth(_conf.terminal_guiScale)
 
 for i = 32,126 do Screen.tOffset[string.char(i)] = math.floor(3 - Screen.font:getWidth(string.char(i)) / 2) * _conf.terminal_guiScale end
 Screen.tOffset["@"] = 0
@@ -89,6 +90,7 @@ end
 local COLOUR_FULL_WHITE = {255,255,255}
 local COLOUR_FULL_BLACK = {0,0,0}
 local COLOUR_HALF_BLACK = {0,0,0,72}
+local COLOUR_HALF_WHITE = {255,255,255,127}
 
 -- Local functions are faster than global
 local lsetCol = love.graphics.setColor
@@ -105,6 +107,8 @@ local function setColor(c)
 		lsetCol(c)
 	end
 end
+
+controlPad = {}
 
 local messages = {}
 
@@ -176,15 +180,21 @@ function Screen:draw()
 	end
 	if _conf.mobileMode then
 		local radius = 20 * _conf.terminal_guiScale
-		local x,y = radius + (6 * _conf.terminal_guiScale), love.window.getHeight()
-		y = y - radius - (6 * _conf.terminal_guiScale)
-		local r,g,b,a = love.graphics.getColor()
-		_G.controlPad ={}
-		_G.controlPad["x"] = x
-		_G.controlPad["y"] = y
-		_G.controlPad["r"] = radius
-		love.graphics.setColor(255,255,255,125)
-		love.graphics.circle("fill",x,y,radius, 100)
-		love.graphics.setColor(r,g,b,a)
+		local scale6 = 6 * _conf.terminal_guiScale
+		local x, y = radius + scale6, love.window.getHeight() - radius - scale6
+		controlPad["x"] = x
+		controlPad["y"] = y
+		controlPad["r"] = radius
+		setColor(COLOUR_HALF_WHITE)
+		love.graphics.circle("fill", x, y, radius, 100)
+		setColor(COLOUR_FULL_BLACK)
+		love.graphics.circle("line", x, y, radius, 100)
+		love.graphics.circle("line", x, y, radius/2.5, 100)
+		local radiusOut = radius*7/10
+		local radiusIn = radius*3/10
+		love.graphics.line(x - radiusOut, y + radiusOut, x - radiusIn, y + radiusIn)
+		love.graphics.line(x - radiusOut, y - radiusOut, x - radiusIn, y - radiusIn)
+		love.graphics.line(x + radiusOut, y - radiusOut, x + radiusIn, y - radiusIn)
+		love.graphics.line(x + radiusOut, y + radiusOut, x + radiusIn, y + radiusIn)
 	end
 end

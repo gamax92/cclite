@@ -1,6 +1,49 @@
 local messageCache = {}
 
-local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n	\n	-- Enable onscreen controls\n	mobileMode = false,\n	\n	--Mappings for controlpad\n	ctrlPad={\n		["top"] = "w",\n		["bottom"] = "s",\n		["left"] = "a",\n		["right"] = "d",\n		["center"] = "return"\n	}\n}\n'
+local defaultConf = [[_conf = {
+	-- Enable the "http" API on Computers
+	enableAPI_http = true,
+	
+	-- Enable the "cclite" API on Computers
+	enableAPI_cclite = true,
+	
+	-- The height of Computer screens, in characters
+	terminal_height = 19,
+	
+	-- The width of Computer screens, in characters
+	terminal_width = 51,
+	
+	-- The GUI scale of Computer screens
+	terminal_guiScale = 2,
+	
+	-- Enable display of emulator FPS
+	cclite_showFPS = false,
+	
+	-- The FPS to lock CCLite to
+	lockfps = 20,
+	
+	-- Enable https connections through luasec
+	useLuaSec = false,
+	
+	-- Enable usage of Carrage Return for fs.writeLine
+	useCRLF = false,
+	
+	-- Check for updates
+	cclite_updateChecker = true,
+	
+	-- Enable onscreen controls
+	mobileMode = false,
+	
+	--Mappings for controlpad
+	ctrlPad={
+		["top"] = "w",
+		["bottom"] = "s",
+		["left"] = "a",
+		["right"] = "d",
+		["center"] = "return"
+	}
+}
+]]
 
 -- Load configuration
 local defaultConfFunc = loadstring(defaultConf,"@config")
@@ -363,31 +406,31 @@ function love.mousepressed(x, y, button)
 		if controlPad then
 			if ((x - controlPad.x)^2 + (y - controlPad.y)^2 < controlPad.r^2) then
 				-- Click on control pad
-				if y <= controlPad.y - (controlPad.r / 3) then
+				if y <= controlPad.y - (controlPad.r / 2.5) then
 					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.top]})
 					if #_conf.ctrlPad.top == 1 and ChatAllowedCharacters[_conf.ctrlPad.top:byte()] then
 						table.insert(Emulator.eventQueue, {"char", _conf.ctrlPad.top})
 					end
 				end
-				if y >= controlPad.y + (controlPad.r / 3) then
+				if y >= controlPad.y + (controlPad.r / 2.5) then
 					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.bottom]})
 					if #_conf.ctrlPad.bottom == 1 and ChatAllowedCharacters[_conf.ctrlPad.bottom:byte()] then
 						table.insert(Emulator.eventQueue, {"char", _conf.ctrlPad.bottom})
 					end
 				end
-				if x <= controlPad.x - (controlPad.r / 3) then
+				if x <= controlPad.x - (controlPad.r / 2.5) then
 					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.left]})
 					if #_conf.ctrlPad.left == 1 and ChatAllowedCharacters[_conf.ctrlPad.left:byte()] then
 						table.insert(Emulator.eventQueue, {"char", _conf.ctrlPad.left})
 					end
 				end
-				if x >= controlPad.x + (controlPad.r / 3) then
+				if x >= controlPad.x + (controlPad.r / 2.5) then
 					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.right]})
 					if #_conf.ctrlPad.right == 1 and ChatAllowedCharacters[_conf.ctrlPad.right:byte()] then
 						table.insert(Emulator.eventQueue, {"char", _conf.ctrlPad.right})
 					end
 				end
-				if ((x - controlPad.x)^2 + (y - controlPad.y)^2 < (controlPad.r / 2)^2) then
+				if ((x - controlPad.x)^2 + (y - controlPad.y)^2 < (controlPad.r / 2.5)^2) then
 					table.insert(Emulator.eventQueue, {"key",keys[_conf.ctrlPad.center]})
 					if #_conf.ctrlPad.center == 1 and ChatAllowedCharacters[_conf.ctrlPad.center:byte()] then
 						table.insert(Emulator.eventQueue, {"char", _conf.ctrlPad.center})

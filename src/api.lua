@@ -1,28 +1,14 @@
 -- HELPER FUNCTIONS
 local function lines(str)
-    -- Eliminate bad cases...
-    if string.find(str,"\n",nil,true) == nil then
-        return { str }
-    end
-	str = str:gsub("\r\n","\n")
-	local t, nexti = {}, 1
-	local pos = 1
-	while true do
-		local st, sp = string.find(str, "\n", pos, true)
-		if not st then break end -- No more seperators found
-		if pos ~= st then
-			t[nexti] = str:sub(pos, st-1) -- Attach chars left of current divider
-			nexti = nexti + 1
-		end
-		pos = sp + 1 -- Jump past current divider
+	str=str:gsub("\r\n","\n"):gsub("\r","\n"):gsub("\n$","").."\n"
+	local out={}
+	for line in str:gmatch("([^\n]*)\n") do
+		table.insert(out,line)
 	end
-	t[nexti] = str:sub(pos) -- Attach chars right of last divider
-	if t[#t] == "" then t[#t] = nil end -- Remove last line if empty.
-	return t
+	return out
 end
 
 -- HELPER CLASSES/HANDLES
--- TODO Make more efficient, use love.filesystem.lines
 local HTTPHandle
 if _conf.enableAPI_http then
 	function HTTPHandle(contents, status)

@@ -108,7 +108,9 @@ local function setColor(c)
 	end
 end
 
-controlPad = {}
+if _conf.mobileMode then
+	controlPad = {}
+end
 
 local messages = {}
 

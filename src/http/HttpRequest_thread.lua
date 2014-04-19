@@ -48,6 +48,7 @@ function sendRequest()
 		httpParams.url = result[3]["location"]
 		httpParams.redirects = httpParams.redirects + 1
 		sendRequest()
+		return
 	end
 
 	-- Compile responseText

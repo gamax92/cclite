@@ -268,6 +268,8 @@ function newobject:SetText(text)
 		self.internals = {}
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -296,6 +298,8 @@ function newobject:SetSize(width, height)
 	self.boxwidth = width
 	self.boxheight = height
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -305,6 +309,7 @@ end
 function newobject:SetWidth(width)
 
 	self.boxwidth = width
+	return self
 	
 end
 
@@ -315,6 +320,7 @@ end
 function newobject:SetHeight(height)
 
 	self.boxheight = height
+	return self
 	
 end
 
@@ -331,6 +337,8 @@ function newobject:SetChecked(bool)
 	if onchanged then
 		onchanged(self)
 	end
+	
+	return self
 	
 end
 
@@ -358,6 +366,8 @@ function newobject:SetFont(font)
 	if text then
 		text:SetFont(font)
 	end
+	
+	return self
 	
 end
 
@@ -408,6 +418,7 @@ end
 function newobject:SetEnabled(bool)
 
 	self.enabled = bool
+	return self
 	
 end
 

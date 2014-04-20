@@ -234,6 +234,8 @@ function newobject:AdjustColumns()
 		x = x + columnwidth
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -254,6 +256,8 @@ function newobject:AddColumn(name)
 	list:SetSize(width, height)
 	list:SetPos(0, 0)
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -267,6 +271,7 @@ function newobject:AddRow(...)
 	local list = internals[1]
 	
 	list:AddRow(arg)
+	return self
 	
 end
 
@@ -308,6 +313,8 @@ function newobject:SetSize(width, height)
 	list:CalculateSize()
 	list:RedoLayout()
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -326,6 +333,8 @@ function newobject:SetWidth(width)
 	list:SetPos(0, 0)
 	list:CalculateSize()
 	list:RedoLayout()
+	
+	return self
 	
 end
 
@@ -346,6 +355,8 @@ function newobject:SetHeight(height)
 	list:CalculateSize()
 	list:RedoLayout()
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -359,6 +370,7 @@ function newobject:SetMaxColorIndex(num)
 	local list = internals[1]
 	
 	list.colorindexmax = num
+	return self
 	
 end
 
@@ -372,6 +384,7 @@ function newobject:Clear()
 	local list = internals[1]
 	
 	list:Clear()
+	return self
 	
 end
 
@@ -395,6 +408,8 @@ function newobject:SetAutoScroll(bool)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -406,6 +421,7 @@ function newobject:SetButtonScrollAmount(amount)
 
 	self.buttonscrollamount = amount
 	self.internals[1].buttonscrollamount = amount
+	return self
 	
 end
 
@@ -428,6 +444,7 @@ function newobject:SetMouseWheelScrollAmount(amount)
 
 	self.mousewheelscrollamount = amount
 	self.internals[1].mousewheelscrollamount = amount
+	return self
 	
 end
 
@@ -459,6 +476,7 @@ function newobject:SetColumnHeight(height)
 	
 	list:CalculateSize()
 	list:RedoLayout()
+	return self
 	
 end
 
@@ -471,6 +489,7 @@ function newobject:SetDTScrolling(bool)
 
 	self.dtscrolling = bool
 	self.internals[1].dtscrolling = bool
+	return self
 	
 end
 
@@ -520,6 +539,8 @@ function newobject:SelectRow(row, ctrl)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -530,6 +551,7 @@ end
 function newobject:DeselectRow(row)
 
 	row.selected = false
+	return self
 	
 end
 
@@ -561,6 +583,7 @@ end
 function newobject:SetSelectionEnabled(bool)
 
 	self.selectionenabled = bool
+	return self
 	
 end
 
@@ -583,6 +606,7 @@ end
 function newobject:SetMultiselectEnabled(bool)
 
 	self.multiselect = bool
+	return self
 	
 end
 
@@ -611,6 +635,8 @@ function newobject:RemoveColumn(id)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -626,6 +652,8 @@ function newobject:SetColumnName(id, name)
 			v.name = name
 		end
 	end
+	
+	return self
 	
 end
 
@@ -655,6 +683,7 @@ function newobject:SizeToChildren(max)
 	
 	self:SetSize(width, height)
 	self:AdjustColumns()
+	return self
 	
 end
 
@@ -674,6 +703,7 @@ function newobject:RemoveRow(id)
 	
 	list:CalculateSize()
 	list:RedoLayout()
+	return self
 
 end
 
@@ -692,6 +722,8 @@ function newobject:SetRowColumnText(text, rowid, columnid)
 		row.columndata[columnid] = text
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -709,5 +741,7 @@ function newobject:SetRowColumnData(rowid, columndata)
 			row.columndata[k] = tostring(v)
 		end
 	end
+	
+	return self
 	
 end

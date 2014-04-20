@@ -175,6 +175,7 @@ end
 function newobject:SetFollowCursor(bool)
 
 	self.followcursor = bool
+	return self
 	
 end
 
@@ -199,6 +200,8 @@ function newobject:SetObject(object)
 	self.x = object.x
 	self.y = object.y
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -221,6 +224,7 @@ function newobject:SetText(text)
 	local textobject = internals[1]
 	
 	textobject:SetText(text)
+	return self
 	
 end
 
@@ -248,6 +252,7 @@ function newobject:SetTextMaxWidth(width)
 	local textobject = internals[1]
 	
 	textobject:SetMaxWidth(width)
+	return self
 	
 end
 
@@ -258,6 +263,7 @@ end
 function newobject:SetOffsetX(xoffset)
 
 	self.xoffset = xoffset
+	return self
 	
 end
 
@@ -278,6 +284,7 @@ end
 function newobject:SetOffsetY(yoffset)
 
 	self.yoffset = yoffset
+	return self
 	
 end
 
@@ -300,6 +307,8 @@ function newobject:SetOffsets(xoffset, yoffset)
 	self.xoffset = xoffset
 	self.yoffset = yoffset
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -319,6 +328,17 @@ end
 function newobject:SetPadding(padding)
 
 	self.padding = padding
+	return self
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetPadding()
+	- desc: gets the tooltip's padding
+--]]---------------------------------------------------------
+function newobject:GetPadding()
+
+	return self.padding
 	
 end
 
@@ -332,6 +352,7 @@ function newobject:SetFont(font)
 	local textobject = internals[1]
 	
 	textobject:SetFont(font)
+	return self
 	
 end
 
@@ -356,6 +377,7 @@ end
 function newobject:SetFollowObject(bool)
 
 	self.followobject = bool
+	return self
 	
 end
 

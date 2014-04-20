@@ -195,6 +195,7 @@ end
 function newobject:SetText(text)
 
 	self.text = text
+	return self
 	
 end
 
@@ -215,6 +216,7 @@ end
 function newobject:SetClickable(bool)
 
 	self.clickable = bool
+	return self
 	
 end
 
@@ -235,6 +237,7 @@ end
 function newobject:SetEnabled(bool)
 
 	self.enabled = bool
+	return self
 	
 end
 
@@ -259,6 +262,8 @@ function newobject:SetImage(image)
 	else
 		self.image = image
 	end
+	
+	return self
 
 end
 
@@ -284,7 +289,9 @@ function newobject:SizeToImage()
 		self.width = image:getWidth()
 		self.height = image:getHeight()
 	end
-
+	
+	return self
+	
 end
 
 --[[---------------------------------------------------------

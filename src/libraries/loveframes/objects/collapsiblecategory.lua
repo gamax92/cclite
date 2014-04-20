@@ -216,6 +216,7 @@ end
 function newobject:SetText(text)
 
 	self.text = text
+	return self
 	
 end
 
@@ -250,6 +251,8 @@ function newobject:SetObject(object)
 	object:SetPos(self.padding, self.closedheight + self.padding)
 	table.insert(self.children, object)
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -276,6 +279,7 @@ end
 function newobject:SetSize(width, height)
 
 	self.width = width
+	return self
 	
 end
 
@@ -285,7 +289,7 @@ end
 --]]---------------------------------------------------------
 function newobject:SetHeight(height)
 
-	return
+	return self
 	
 end
 
@@ -296,6 +300,7 @@ end
 function newobject:SetClosedHeight(height)
 
 	self.closedheight = height
+	return self
 	
 end
 
@@ -341,6 +346,8 @@ function newobject:SetOpen(bool)
 	if onopenedclosed then
 		onopenedclosed(self)
 	end
+	
+	return self
 	
 end
 

@@ -197,6 +197,8 @@ function newobject:AddItem(object)
 	table.insert(children, object)
 	self:LayoutObjects()
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -218,6 +220,7 @@ function newobject:RemoveItem(data)
 	end
 	
 	self:LayoutObjects()
+	return self
 	
 end
 
@@ -268,6 +271,8 @@ function newobject:LayoutObjects()
 		self.height = height + largest_height
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -277,6 +282,7 @@ end
 function newobject:SetLayoutType(ltype)
 
 	self.layout = ltype
+	return self
 	
 end
 
@@ -298,6 +304,7 @@ end
 function newobject:SetTopMargin(margin)
 
 	self.topmargin = margin
+	return self
 
 end
 
@@ -319,6 +326,7 @@ end
 function newobject:SetName(name)
 
 	self.name = name
+	return self
 	
 end
 

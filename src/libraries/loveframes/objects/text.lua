@@ -92,7 +92,6 @@ function newobject:update(dt)
 	
 	local hover = self.hover
 	local linksenabled = self.linksenabled
-	local version = love._version
 	local linkcol = false
 	
 	if hover and linksenabled and not loveframes.resizeobject then
@@ -275,18 +274,34 @@ function newobject:SetText(t)
 			end
 			if v.link then
 				link = true
+			else
+				link = false
 			end
 		elseif dtype == "number" then
-			table.insert(self.formattedtext, {font = prevfont, color = prevcolor, linkcolor = prevlinkcolor, linkhovercolor = prevlinkhovercolor, link = link, text = tostring(v)})
+			table.insert(self.formattedtext, {
+				font = prevfont, 
+				color = prevcolor, 
+				linkcolor = prevlinkcolor, 
+				linkhovercolor = prevlinkhovercolor, 
+				link = link, 
+				text = tostring(v)
+			})
 		elseif dtype == "string" then
 			if self.ignorenewlines then
-				v = v:gsub(" \n ", " ")
-				v = v:gsub("\n", "")
+				v = v:gsub("\n", " ")
 			end
 			v = v:gsub(string.char(9), "    ")
+			v = v:gsub("\n", " \n ")
 			local parts = loveframes.util.SplitString(v, " ")
 			for i, j in ipairs(parts) do
-				table.insert(self.formattedtext, {font = prevfont, color = prevcolor, linkcolor = prevlinkcolor, linkhovercolor = prevlinkhovercolor, link = link, text = j})
+				table.insert(self.formattedtext, {
+					font = prevfont, 
+					color = prevcolor, 
+					linkcolor = prevlinkcolor, 
+					linkhovercolor = prevlinkhovercolor, 
+					link = link, 
+					text = j
+				})
 			end
 		end
 	end
@@ -305,7 +320,15 @@ function newobject:SetText(t)
 					local itemw = v.font:getWidth(item)
 					if n ~= #data then
 						if (curw + itemw) > maxw then
-							table.insert(inserts, {key = key, font = v.font, color = v.color, linkcolor = prevlinkcolor, linkhovercolor = v.linkhovercolor, link = v.link, text = new})
+							table.insert(inserts, {
+								key = key, 
+								font = v.font, 
+								color = v.color, 
+								linkcolor = prevlinkcolor, 
+								linkhovercolor = v.linkhovercolor, 
+								link = v.link, 
+								text = new
+							})
 							new = item
 							curw = 0 + itemw
 							key = key + 1
@@ -315,7 +338,15 @@ function newobject:SetText(t)
 						end
 					else
 						new = new .. item
-						table.insert(inserts, {key = key, font = v.font, color = v.color, linkcolor = prevlinkcolor, linkhovercolor = v.linkhovercolor, link = v.link, text = new})
+						table.insert(inserts, {
+							key = key, 
+							font = v.font, 
+							color = v.color, 
+							linkcolor = prevlinkcolor, 
+							linkhovercolor = v.linkhovercolor, 
+							link = v.link, 
+							text = new
+						})
 					end
 				end
 			end
@@ -323,7 +354,14 @@ function newobject:SetText(t)
 	end
 	
 	for k, v in ipairs(inserts) do
-		table.insert(self.formattedtext, v.key, {font = v.font, color = v.color, linkcolor = prevlinkcolor, linkhovercolor = v.linkhovercolor, link = v.link, text = v.text})
+		table.insert(self.formattedtext, v.key, {
+			font = v.font, 
+			color = v.color, 
+			linkcolor = prevlinkcolor, 
+			linkhovercolor = v.linkhovercolor, 
+			link = v.link, 
+			text = v.text
+		})
 	end
 	
 	local textdata = self.formattedtext
@@ -430,6 +468,7 @@ function newobject:SetText(t)
 	end
 	
 	self.height = drawy + prevlargestheight
+	return self
 	
 end
 
@@ -521,6 +560,8 @@ function newobject:DrawText()
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -533,6 +574,8 @@ function newobject:SetMaxWidth(width)
 	
 	self.maxw = width
 	self:SetText(original)
+	
+	return self
 	
 end
 
@@ -553,6 +596,7 @@ end
 function newobject:SetWidth(width)
 
 	self:SetMaxWidth(width)
+	return self
 	
 end
 
@@ -573,6 +617,7 @@ end
 function newobject:SetSize(width, height)
 
 	self:SetMaxWidth(width)
+	return self
 	
 end
 
@@ -590,6 +635,8 @@ function newobject:SetFont(font)
 	if original then
 		self:SetText(original)
 	end
+	
+	return self
 	
 end
 
@@ -620,6 +667,7 @@ end
 function newobject:SetIgnoreNewlines(bool)
 
 	self.ignorenewlines = bool
+	return self
 	
 end
 
@@ -641,6 +689,7 @@ end
 function newobject:SetShadow(bool)
 
 	self.shadow = bool
+	return self
 	
 end
 
@@ -664,6 +713,8 @@ function newobject:SetShadowOffsets(offsetx, offsety)
 	self.shadowxoffset = offsetx
 	self.shadowyoffset = offsety
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -683,6 +734,7 @@ end
 function newobject:SetShadowColor(r, g, b, a)
 	
 	self.shadowcolor = {r, g, b, a}
+	return self
 	
 end
 
@@ -703,6 +755,7 @@ end
 function newobject:SetDefaultColor(r, g, b, a)
 
 	self.defaultcolor = {r, g, b, a}
+	return self
 	
 end
 
@@ -725,6 +778,7 @@ end
 function newobject:SetLinksEnabled(enabled)
 
 	self.linksenabled = enabled
+	return self
 	
 end
 
@@ -747,6 +801,7 @@ end
 function newobject:SetDetectLinks(detect)
 
 	self.detectlinks = detect
+	return self
 	
 end
 

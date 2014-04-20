@@ -176,6 +176,8 @@ function newobject:AddChoice(choice)
 	local choices = self.choices
 	table.insert(choices, choice)
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -194,6 +196,8 @@ function newobject:RemoveChoice(choice)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -203,6 +207,7 @@ end
 function newobject:SetChoice(choice)
 
 	self.choice = choice
+	return self
 	
 end
 
@@ -224,6 +229,8 @@ function newobject:SelectChoice(choice)
 		onchoiceselected(self, choice)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -233,6 +240,7 @@ end
 function newobject:SetListHeight(height)
 
 	self.listheight = height
+	return self
 	
 end
 
@@ -243,6 +251,7 @@ end
 function newobject:SetPadding(padding)
 
 	self.listpadding = padding
+	return self
 	
 end
 
@@ -253,6 +262,7 @@ end
 function newobject:SetSpacing(spacing)
 
 	self.listspacing = spacing
+	return self
 	
 end
 
@@ -283,6 +293,7 @@ end
 function newobject:SetText(text)
 
 	self.text = text
+	return self
 	
 end
 
@@ -304,6 +315,7 @@ end
 function newobject:SetButtonScrollAmount(amount)
 
 	self.buttonscrollamount = amount
+	return self
 	
 end
 
@@ -325,6 +337,7 @@ end
 function newobject:SetMouseWheelScrollAmount(amount)
 
 	self.mousewheelscrollamount = amount
+	return self
 	
 end
 
@@ -346,6 +359,7 @@ end
 function newobject:SetDTScrolling(bool)
 
 	self.dtscrolling = bool
+	return self
 	
 end
 
@@ -374,6 +388,8 @@ function newobject:Sort(func)
 		table.sort(self.choices, default)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -383,6 +399,7 @@ end
 function newobject:SetSortFunction(func)
 
 	self.sortfunc = func
+	return self
 	
 end
 
@@ -407,6 +424,8 @@ function newobject:Clear()
 	self.choice = ""
 	self.text = "Select an option"
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -416,6 +435,7 @@ end
 function newobject:SetEnabled(bool)
 
 	self.enabled = bool
+	return self
 	
 end
 

@@ -1,4 +1,19 @@
 ================================================
+Version 0.9.8 - Alpha (April 3 - 2014)
+================================================
+[ADDED] support for method chaining
+[ADDED] a new tooltip method: GetPadding()
+[ADDED] a new frame method: SetAlwaysOnTop(bool)
+[ADDED] a new frame method: GetAlwaysOnTop()
+
+[FIXED] text object link detection issues
+[FIXED] loveframes.util.GetDirectoryContents returning incorrect require paths
+
+[CHANGED] the text object will now detect newlines that are not separated by spaces
+
+[REMOVED] support for LOVE 0.8.0
+
+================================================
 Version 0.9.7.2 - Alpha (January 29 - 2014)
 ================================================
 [ADDED] a new closebutton method: SetAutoPosition(bool)

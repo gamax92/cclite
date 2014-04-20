@@ -261,6 +261,8 @@ function newobject:SetValue(value)
 		onvaluechanged(self, newval)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -285,6 +287,8 @@ function newobject:SetMax(max)
 		self.value = self.max
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -308,6 +312,8 @@ function newobject:SetMin(min)
 	if self.value < self.min then
 		self.value = self.min
 	end
+	
+	return self
 	
 end
 
@@ -338,6 +344,8 @@ function newobject:SetMinMax(min, max)
 		self.value = self.min
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -357,6 +365,7 @@ end
 function newobject:SetText(text)
 
 	self.text = text
+	return self
 	
 end
 
@@ -378,6 +387,7 @@ end
 function newobject:SetDecimals(decimals)
 
 	self.decimals = decimals
+	return self
 	
 end
 
@@ -405,6 +415,8 @@ function newobject:SetButtonSize(width, height)
 		sliderbutton.width = width
 		sliderbutton.height = height
 	end
+	
+	return self
 	
 end
 
@@ -435,6 +447,8 @@ function newobject:SetSlideType(slidetype)
 		self:SetValue(self.min)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -455,6 +469,7 @@ end
 function newobject:SetScrollable(bool)
 
 	self.scrollable = bool
+	return self
 	
 end
 
@@ -477,6 +492,7 @@ end
 function newobject:SetScrollIncrease(increase)
 
 	self.scrollincrease = increase
+	return self
 	
 end
 
@@ -499,6 +515,7 @@ end
 function newobject:SetScrollDecrease(decrease)
 
 	self.scrolldecrease = decrease
+	return self
 	
 end
 
@@ -520,6 +537,7 @@ end
 function newobject:SetEnabled(bool)
 
 	self.enabled = bool
+	return self
 	
 end
 

@@ -50,6 +50,7 @@ function newobject:initialize()
 	self.dockable = false
 	self.resizing = false
 	self.canresize = false
+	self.alwaysontop = false
 	self.internals = {}
 	self.children = {}
 	self.icon = nil
@@ -70,9 +71,14 @@ function newobject:initialize()
 	close.parent = self
 	close.OnClick = function(x, y, object)
 		local onclose = object.parent.OnClose
-		object.parent:Remove()
 		if onclose then
-			onclose(object.parent)
+			local ret = onclose(object.parent)
+
+			if ret ~= false then
+				object.parent:Remove()
+			end
+		else
+			object.parent:Remove()
 		end
 	end
 	
@@ -355,6 +361,10 @@ function newobject:update(dt)
 		end
 	end
 	
+	if parent == base and self.alwaysontop and not self:IsTopChild() then
+		self:MakeTop()
+	end
+	
 	if modal then
 		local tip = false
 		local key = 0
@@ -372,6 +382,9 @@ function newobject:update(dt)
 		end
 		if self.modalbackground.draworder > self.draworder then
 			self:MakeTop()
+		end
+		if self.modalbackground.state ~= self.state then
+			self.modalbackground:SetState(self.state)
 		end
 	end
 	
@@ -465,7 +478,6 @@ function newobject:mousepressed(x, y, button)
 	
 	local width = self.width
 	local height = self.height
-	local selfcol = loveframes.util.BoundingBox(x, self.x, y, self.y, 1, self.width, 1, self.height)
 	local internals = self.internals
 	local children = self.children
 	local dragging = self.dragging
@@ -474,8 +486,14 @@ function newobject:mousepressed(x, y, button)
 	
 	if button == "l" then
 		-- initiate dragging if not currently dragging
-		if not dragging and self.hover then
-			if y < self.y + 25 and self.draggable then
+		if not dragging and self.hover and self.draggable  then
+			local topcol
+			if self.canresize then
+				topcol = loveframes.util.BoundingBox(x, self.x + 2, y, self.y + 2, 1, self.width - 4, 1, 21)
+			else
+				topcol = loveframes.util.BoundingBox(x, self.x, y, self.y, 1, self.width, 1, 25)
+			end
+			if topcol then
 				if parent == base then
 					self.clickx = x - self.x
 					self.clicky = y - self.y
@@ -663,6 +681,7 @@ end
 function newobject:SetName(name)
 
 	self.name = name
+	return self
 	
 end
 
@@ -683,6 +702,7 @@ end
 function newobject:SetDraggable(bool)
 
 	self.draggable = bool
+	return self
 	
 end
 
@@ -705,6 +725,7 @@ end
 function newobject:SetScreenLocked(bool)
 
 	self.screenlocked = bool
+	return self
 	
 end
 
@@ -730,6 +751,7 @@ function newobject:ShowCloseButton(bool)
 
 	close.visible = bool
 	self.showclose = bool
+	return self
 	
 end
 
@@ -776,6 +798,8 @@ function newobject:MakeTop()
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -816,6 +840,8 @@ function newobject:SetModal(bool)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -849,6 +875,8 @@ function newobject:SetVisible(bool)
 		closebutton.visible = bool
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -859,6 +887,7 @@ end
 function newobject:SetParentLocked(bool)
 
 	self.parentlocked = bool
+	return self
 	
 end
 
@@ -884,6 +913,8 @@ function newobject:SetIcon(icon)
 	else
 		self.icon = icon
 	end
+	
+	return self
 	
 end
 
@@ -912,6 +943,7 @@ end
 function newobject:SetDockable(dockable)
 
 	self.dockable = dockable
+	return self
 
 end
 
@@ -934,6 +966,7 @@ end
 function newobject:SetDockZoneSize(size)
 
 	self.dockzonesize = size
+	return self
 	
 end
 
@@ -954,6 +987,7 @@ end
 function newobject:SetResizable(bool)
 
 	self.canresize = bool
+	return self
 	
 end
 
@@ -974,6 +1008,7 @@ end
 function newobject:SetMinWidth(width)
 
 	self.minwidth = width
+	return self
 	
 end
 
@@ -994,6 +1029,7 @@ end
 function newobject:SetMaxWidth(width)
 
 	self.maxwidth = width
+	return self
 	
 end
 
@@ -1014,6 +1050,7 @@ end
 function newobject:SetMinHeight(height)
 
 	self.minheight = height
+	return self
 	
 end
 
@@ -1034,6 +1071,7 @@ end
 function newobject:SetMaxHeight(height)
 
 	self.maxheight = height
+	return self
 	
 end
 
@@ -1044,5 +1082,28 @@ end
 function newobject:GetMaxHeight()
 
 	return self.maxheight
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetAlwaysOnTop(bool)
+	- desc: sets whether or not a frame should always be
+			drawn on top of other objects
+--]]---------------------------------------------------------
+function newobject:SetAlwaysOnTop(bool)
+
+	self.alwaysontop = bool
+	return self
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetAlwaysOnTop()
+	- desc: gets whether or not a frame should always be
+			drawn on top of other objects
+--]]---------------------------------------------------------
+function newobject:GetAlwaysOnTop()
+
+	return self.alwaysontop
 	
 end

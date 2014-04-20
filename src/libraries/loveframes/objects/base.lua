@@ -151,10 +151,10 @@ function newobject:mousereleased(x, y, button)
 end
 
 --[[---------------------------------------------------------
-	- func: keypressed(key)
+	- func: keypressed(key, isrepeat)
 	- desc: called when the player presses a key
 --]]---------------------------------------------------------
-function newobject:keypressed(key, unicode)
+function newobject:keypressed(key, isrepeat)
 	
 	local state = loveframes.state
 	local selfstate = self.state
@@ -280,6 +280,8 @@ function newobject:SetPos(x, y, center)
 		self.staticy = y
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -301,6 +303,8 @@ function newobject:SetX(x, center)
 	else
 		self.staticx = x
 	end
+	
+	return self
 
 end
 
@@ -323,6 +327,8 @@ function newobject:SetY(y, center)
 	else
 		self.staticy = y
 	end
+	
+	return self
 	
 end
 
@@ -410,6 +416,8 @@ function newobject:Center(area)
 		self.staticy = height/2 - self.height/2
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -428,6 +436,8 @@ function newobject:CenterX()
 		local width = parent.width
 		self.staticx = width/2 - self.width/2
 	end
+	
+	return self
 	
 end
 
@@ -448,6 +458,8 @@ function newobject:CenterY()
 		self.staticy = height/2 - self.height/2
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -462,6 +474,8 @@ function newobject:CenterWithinArea(x, y, width, height)
 	self.x = x + width/2 - selfwidth/2
 	self.y = y + height/2 - selfheight/2
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -473,6 +487,8 @@ function newobject:SetSize(width, height)
 	self.width = width
 	self.height = height
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -482,6 +498,7 @@ end
 function newobject:SetWidth(width)
 
 	self.width = width
+	return self
 	
 end
 
@@ -492,6 +509,7 @@ end
 function newobject:SetHeight(height)
 
 	self.height = height
+	return self
 	
 end
 
@@ -548,6 +566,8 @@ function newobject:SetVisible(bool)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -580,6 +600,7 @@ function newobject:SetParent(parent)
 	self:SetState(tparent.state)
 	
 	table.insert(tparent.children, self)
+	return self
 
 end
 
@@ -619,6 +640,8 @@ function newobject:Remove()
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -644,6 +667,8 @@ function newobject:SetClickBounds(x, y, width, height)
 			v:SetClickBounds(x, y, width, height)
 		end
 	end
+	
+	return self
 	
 end
 
@@ -682,6 +707,8 @@ function newobject:RemoveClickBounds()
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -700,6 +727,8 @@ function newobject:InClickBounds()
 	else
 		return false
 	end
+	
+	return self
 	
 end
 
@@ -926,6 +955,8 @@ function newobject:MoveToTop()
 		table.insert(pchildren, self)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -950,6 +981,8 @@ function newobject:SetSkin(name)
 			v:SetSkin(name)
 		end
 	end
+	
+	return self
 	
 end
 
@@ -986,6 +1019,7 @@ end
 function newobject:SetAlwaysUpdate(bool)
 
 	self.alwaysupdate = bool
+	return self
 
 end
 
@@ -1007,6 +1041,7 @@ end
 function newobject:SetRetainSize(bool)
 
 	self.retainsize = bool
+	return self
 	
 end
 
@@ -1114,6 +1149,7 @@ function newobject:SetDrawOrder()
 
 	loveframes.drawcount = loveframes.drawcount + 1
 	self.draworder = loveframes.drawcount
+	return self
 
 end
 
@@ -1134,6 +1170,7 @@ end
 function newobject:SetProperty(name, value)
 
 	self[name] = value
+	return self
 	
 end
 
@@ -1187,6 +1224,8 @@ function newobject:SetState(name)
 			v:SetState(name)
 		end
 	end
+	
+	return self
 	
 end
 

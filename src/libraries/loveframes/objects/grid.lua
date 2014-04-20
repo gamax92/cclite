@@ -221,6 +221,8 @@ function newobject:AddItem(object, row, column)
 		object.height = ch - (self.cellpadding * 2)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -250,6 +252,7 @@ end
 function newobject:SetItemAutoSize(bool)
 
 	self.itemautosize = bool
+	return self
 	
 end
 
@@ -271,6 +274,7 @@ end
 function newobject:SetRows(rows)
 
 	self.rows = rows
+	return self
 	
 end
 
@@ -292,6 +296,7 @@ end
 function newobject:SetColumns(columns)
 
 	self.columns = columns
+	return self
 	
 end
 
@@ -312,6 +317,7 @@ end
 function newobject:SetCellWidth(width)
 
 	self.cellwidth = width
+	return self
 	
 end
 
@@ -332,6 +338,7 @@ end
 function newobject:SetCellHeight(height)
 
 	self.cellheight = height
+	return self
 	
 end
 
@@ -353,6 +360,7 @@ function newobject:SetCellSize(width, height)
 
 	self.cellwidth = width
 	self.cellheight = height
+	return self
 	
 end
 
@@ -373,6 +381,7 @@ end
 function newobject:SetCellPadding(padding)
 
 	self.cellpadding = padding
+	return self
 	
 end
 

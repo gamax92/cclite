@@ -136,17 +136,10 @@ end
 --]]---------------------------------------------------------
 function loveframes.util.GetDirectoryContents(dir, t)
 
-	local version = love._version
 	local dir = dir
 	local t = t or {}
 	local dirs = {}
-	local files
-	
-	if version == "0.9.0" or version == "0.9.1" then
-		files = love.filesystem.getDirectoryItems(dir)
-	else
-		files = love.filesystem.enumerate(dir)
-	end
+	local files = love.filesystem.getDirectoryItems(dir)
 	
 	for k, v in ipairs(files) do
 		local isdir = love.filesystem.isDirectory(dir.. "/" ..v)
@@ -157,7 +150,13 @@ function loveframes.util.GetDirectoryContents(dir, t)
 			local extension = parts[#parts]
 			parts[#parts] = nil
 			local name = table.concat(parts)
-			table.insert(t, {path = dir, fullpath = dir.. "/" ..v, requirepath = dir .. "." ..name, name = name, extension = extension})
+			table.insert(t, {
+				path = dir, 
+				fullpath = dir.. "/" ..v, 
+				requirepath = dir:gsub("/", ".") .. "." ..name, 
+				name = name, 
+				extension = extension
+			})
 		end
 	end
 	

@@ -140,7 +140,6 @@ function newobject:draw()
 	local internals = self.internals
 	local tabheight = self:GetHeightOfButtons()
 	local stencilfunc = function() love.graphics.rectangle("fill", x + self.buttonareax, y, self.buttonareawidth, height) end
-	local loveversion = love._version
 	local internals = self.internals
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
@@ -161,12 +160,7 @@ function newobject:draw()
 		drawfunc(self)
 	end
 	
-	if loveversion == "0.8.0" then
-		local stencil = love.graphics.newStencil(stencilfunc)
-		love.graphics.setStencil(stencil)
-	else
-		love.graphics.setStencil(stencilfunc)
-	end
+	love.graphics.setStencil(stencilfunc)
 	
 	for k, v in ipairs(internals) do
 		local col = loveframes.util.BoundingBox(x + self.buttonareax, v.x, self.y, v.y, self.buttonareawidth, v.width, tabheight, v.height)
@@ -336,6 +330,8 @@ function newobject:AddTab(name, object, tip, image, onopened, onclosed)
 		object:SetSize(self.width - padding * 2, (self.height - tabheight) - padding * 2)
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -467,6 +463,8 @@ function newobject:SwitchToTab(tabnumber)
 	self.tab = tabnumber
 	self.children[tabnumber].visible = true
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -483,6 +481,8 @@ function newobject:SetScrollButtonSize(width, height)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -492,6 +492,7 @@ end
 function newobject:SetPadding(padding)
 
 	self.padding = padding
+	return self
 	
 end
 
@@ -537,6 +538,8 @@ function newobject:SetTabHeight(height)
 		end
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -552,6 +555,8 @@ function newobject:SetToolTipFont(font)
 			v.tooltip:SetFont(font)
 		end
 	end
+	
+	return self
 	
 end
 
@@ -597,6 +602,7 @@ function newobject:RemoveTab(id)
 	end
 	
 	self.tabnumber = tabnumber
+	return self
 	
 end
 
@@ -608,6 +614,7 @@ end
 function newobject:SetButtonScrollAmount(amount)
 
 	self.buttonscrollamount = amount
+	return self
 	
 end
 
@@ -629,6 +636,7 @@ end
 function newobject:SetMouseWheelScrollAmount(amount)
 
 	self.mousewheelscrollamount = amount
+	return self
 	
 end
 
@@ -650,6 +658,7 @@ end
 function newobject:SetDTScrolling(bool)
 
 	self.dtscrolling = bool
+	return self
 	
 end
 
@@ -684,6 +693,8 @@ function newobject:SetTabObject(id, object)
 		children[id] = object
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -693,6 +704,7 @@ end
 function newobject:SetButtonAreaX(x)
 
 	self.buttonareax = x
+	return self
 	
 end
 
@@ -713,6 +725,7 @@ end
 function newobject:SetButtonAreaWidth(width)
 
 	self.buttonareawidth = width
+	return self
 	
 end
 
@@ -734,6 +747,7 @@ end
 function newobject:SetAutoButtonAreaWidth(bool)
 
 	self.autobuttonareawidth = bool
+	return self
 	
 end
 

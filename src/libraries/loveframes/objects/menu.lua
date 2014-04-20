@@ -218,6 +218,7 @@ function newobject:AddOption(text, icon, func)
 	menuoption:SetFunction(func)
 	
 	table.insert(self.internals, menuoption)
+	return self
 	
 end
 
@@ -233,6 +234,8 @@ function newobject:RemoveOption(id)
 			return
 		end
 	end
+	
+	return self
 	
 end
 
@@ -266,6 +269,7 @@ function newobject:AddSubMenu(text, icon, menu)
 	end
 	
 	table.insert(self.internals, menuoption)
+	return self
 	
 end
 
@@ -278,6 +282,7 @@ function newobject:AddDivider()
 	local menuoption = loveframes.objects["menuoption"]:new(self, "divider")
 	
 	table.insert(self.internals, menuoption)
+	return self
 	
 end
 
@@ -317,5 +322,7 @@ function newobject:SetVisible(bool)
 			end
 		end
 	end
+	
+	return self
 	
 end

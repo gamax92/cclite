@@ -171,6 +171,7 @@ end
 function newobject:SetMax(max)
 
 	self.max = max
+	return self
 	
 end
 
@@ -191,6 +192,7 @@ end
 function newobject:SetMin(min)
 
 	self.min = min
+	return self
 	
 end
 
@@ -212,6 +214,8 @@ function newobject:SetMinMax(min, max)
 
 	self.min = min
 	self.max = max
+	
+	return self
 	
 end
 
@@ -242,6 +246,8 @@ function newobject:SetValue(value)
 		self.value = value
 	end
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -265,6 +271,8 @@ function newobject:SetLerp(bool)
 	self.lerpto = self:GetValue()
 	self.lerpvalue = self:GetValue()
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -285,6 +293,7 @@ end
 function newobject:SetLerpRate(rate)
 
 	self.lerprate = rate
+	return self
 	
 end
 
@@ -326,6 +335,7 @@ end
 function newobject:SetText(text)
 
 	self.text = text
+	return self
 	
 end
 

@@ -122,6 +122,8 @@ function newobject:SetImage(image)
 	self.width = self.image:getWidth()
 	self.height = self.image:getHeight()
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -141,6 +143,7 @@ end
 function newobject:SetColor(r, g, b, a)
 
 	self.imagecolor = {r, g, b, a}
+	return self
 	
 end
 
@@ -161,6 +164,7 @@ end
 function newobject:SetOrientation(orientation)
 
 	self.orientation = orientation
+	return self
 	
 end
 
@@ -181,6 +185,7 @@ end
 function newobject:SetScaleX(scalex)
 
 	self.scalex = scalex
+	return self
 	
 end
 
@@ -201,6 +206,7 @@ end
 function newobject:SetScaleY(scaley)
 
 	self.scaley = scaley
+	return self
 	
 end
 
@@ -223,6 +229,8 @@ function newobject:SetScale(scalex, scaley)
 	self.scalex = scalex
 	self.scaley = scaley
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -242,6 +250,7 @@ end
 function newobject:SetOffsetX(x)
 
 	self.offsetx = x
+	return self
 	
 end
 
@@ -262,6 +271,7 @@ end
 function newobject:SetOffsetY(y)
 
 	self.offsety = y
+	return self
 	
 end
 
@@ -284,6 +294,8 @@ function newobject:SetOffset(x, y)
 	self.offsetx = x
 	self.offsety = y
 	
+	return self
+	
 end
 
 --[[---------------------------------------------------------
@@ -303,6 +315,7 @@ end
 function newobject:SetShearX(shearx)
 
 	self.shearx = shearx
+	return self
 	
 end
 
@@ -323,6 +336,7 @@ end
 function newobject:SetShearY(sheary)
 
 	self.sheary = sheary
+	return self
 	
 end
 
@@ -344,6 +358,8 @@ function newobject:SetShear(shearx, sheary)
 
 	self.shearx = shearx
 	self.sheary = sheary
+	
+	return self
 	
 end
 

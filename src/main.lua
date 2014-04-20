@@ -1,6 +1,37 @@
 local messageCache = {}
 
-local defaultConf = '_conf = {\n	-- Enable the "http" API on Computers\n	enableAPI_http = true,\n	\n	-- Enable the "cclite" API on Computers\n	enableAPI_cclite = true,\n	\n	-- The height of Computer screens, in characters\n	terminal_height = 19,\n	\n	-- The width of Computer screens, in characters\n	terminal_width = 51,\n	\n	-- The GUI scale of Computer screens\n	terminal_guiScale = 2,\n	\n	-- Enable display of emulator FPS\n	cclite_showFPS = false,\n	\n	-- The FPS to lock CCLite to\n	lockfps = 20,\n	\n	-- Enable https connections through luasec\n	useLuaSec = false,\n	\n	-- Enable usage of Carrage Return for fs.writeLine\n	useCRLF = false,\n	\n	-- Check for updates\n	cclite_updateChecker = true,\n}\n'
+local defaultConf = [[_conf = {
+	-- Enable the "http" API on Computers
+	enableAPI_http = true,
+	
+	-- Enable the "cclite" API on Computers
+	enableAPI_cclite = true,
+	
+	-- The height of Computer screens, in characters
+	terminal_height = 19,
+	
+	-- The width of Computer screens, in characters
+	terminal_width = 51,
+	
+	-- The GUI scale of Computer screens
+	terminal_guiScale = 2,
+	
+	-- Enable display of emulator FPS
+	cclite_showFPS = false,
+	
+	-- The FPS to lock CCLite to
+	lockfps = 20,
+	
+	-- Enable https connections through luasec
+	useLuaSec = false,
+	
+	-- Enable usage of Carrage Return for fs.writeLine
+	useCRLF = false,
+	
+	-- Check for updates
+	cclite_updateChecker = true,
+}
+]]
 
 -- Load configuration
 local defaultConfFunc = loadstring(defaultConf,"@config")

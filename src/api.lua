@@ -2,25 +2,12 @@ api = {}
 function api.init(Computer,color,id)
 	-- HELPER FUNCTIONS
 	local function lines(str)
-		-- Eliminate bad cases...
-		if string.find(str,"\n",nil,true) == nil then
-			return { str }
+		str=str:gsub("\r\n","\n"):gsub("\r","\n"):gsub("\n$","").."\n"
+		local out={}
+		for line in str:gmatch("([^\n]*)\n") do
+			table.insert(out,line)
 		end
-		str = str:gsub("\r\n","\n")
-		local t, nexti = {}, 1
-		local pos = 1
-		while true do
-			local st, sp = string.find(str, "\n", pos, true)
-			if not st then break end -- No more seperators found
-			if pos ~= st then
-				t[nexti] = str:sub(pos, st-1) -- Attach chars left of current divider
-				nexti = nexti + 1
-			end
-			pos = sp + 1 -- Jump past current divider
-		end
-		t[nexti] = str:sub(pos) -- Attach chars right of last divider
-		if t[#t] == "" then t[#t] = nil end -- Remove last line if empty.
-		return t
+		return out
 	end
 
 	-- HELPER CLASSES/HANDLES
@@ -92,6 +79,8 @@ function api.init(Computer,color,id)
 				return "Infinity"
 			elseif t == -math.huge then
 				return "-Infinity"
+			elseif t ~= t then
+				return "NaN"
 			else
 				return tostring(t):gsub("^[^e.]+%f[^0-9.]","%1.0"):gsub("e%+","e"):upper()
 			end
@@ -701,12 +690,12 @@ function api.init(Computer,color,id)
 		local segment = spec:match('([^/]*)'):gsub('/', '')
 		local pattern = '^' .. segment:gsub('[*]', '.+'):gsub('?', '.') .. '$'
 
-		if api.fs.isDir(path) then
-			for _, file in ipairs(api.fs.list(path)) do
+		if tmpapi.fs.isDir(path) then
+			for _, file in ipairs(tmpapi.fs.list(path)) do
 				if file:match(pattern) then
-					local f = api.fs.combine(path, file)
+					local f = tmpapi.fs.combine(path, file)
 
-					if api.fs.isDir(f) then
+					if tmpapi.fs.isDir(f) then
 						recurse_spec(results, f, spec:sub(#segment + 2))
 					elseif spec == segment then
 						table.insert(results, f)
@@ -716,6 +705,14 @@ function api.init(Computer,color,id)
 		end
 	end
 
+	-- Such a useless function
+	function tmpapi.fs.getDir(...)
+		local path = ...
+		if type(path) ~= "string" or select("#",...) ~= 1 then
+			error("Expected string",2)
+		end
+		return tmpapi.fs.combine(path, "..")
+	end
 	function tmpapi.fs.find(...)
 		local spec = ...
 		if type(spec) ~= "string" or select("#",...) ~= 1 then
@@ -803,7 +800,7 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = api.fs.combine("data/", path)
+		local testpath = tmpapi.fs.combine("data/", path)
 		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 		path = vfs.normalize(path)
 		if path == "/rom" or path:sub(1, 5) == "/rom/" then
@@ -1158,6 +1155,7 @@ function api.init(Computer,color,id)
 			isColour = tmpapi.term.isColor,
 		},
 		fs = {
+			getDir = tmpapi.fs.getDir,
 			find = tmpapi.fs.find,
 			open = tmpapi.fs.open,
 			list = tmpapi.fs.list,

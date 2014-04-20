@@ -691,6 +691,14 @@ local function recurse_spec(results, path, spec)
 	end
 end
 
+-- Such a useless function
+function api.fs.getDir(...)
+	local path = ...
+	if type(path) ~= "string" or select("#",...) ~= 1 then
+		error("Expected string",2)
+	end
+	return api.fs.combine(path, "..")
+end
 function api.fs.find(...)
 	local spec = ...
 	if type(spec) ~= "string" or select("#",...) ~= 1 then
@@ -1136,6 +1144,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			isColour = api.term.isColor,
 		},
 		fs = {
+			getDir = api.fs.getDir,
 			find = api.fs.find,
 			open = api.fs.open,
 			list = api.fs.list,

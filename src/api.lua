@@ -789,10 +789,11 @@ function api.fs.getDrive(...)
 	local testpath = api.fs.combine("data/", path)
 	if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
 	path = vfs.normalize(path)
-	if path == "/rom" or path:sub(1, 5) == "/rom/" then
-		return "rom"
+	if not vfs.exists(path) then
+		return
 	end
-	return "hdd"
+	local mountEntry = vfs.getMountContainer(path)
+	return mountEntry[4]
 end
 function api.fs.getSize(...)
 	local path = ...

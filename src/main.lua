@@ -370,7 +370,7 @@ function love.load()
 		love.filesystem.createDirectory("data/0/")
 	end
 	
-	vfs.mount("/data","/")
+	vfs.mount("/data","/","hdd")
 	-- Migrate to new folder.
 	local list = vfs.getDirectoryItems("/")
 	for k,v in pairs(list) do
@@ -387,8 +387,8 @@ function love.load()
 		love.filesystem.write("/data/0/0",cache0)
 	end
 	
-	vfs.mount("/data/0","/")
-	vfs.mount("/lua/rom","/rom")
+	vfs.mount("/data/0","/","hdd")
+	vfs.mount("/lua/rom","/rom","rom")
 	
 	love.keyboard.setKeyRepeat(true)
 

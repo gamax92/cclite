@@ -75,14 +75,14 @@ function peripheral.base.diskDrive(sSide)
 					i = 2
 					while true do
 						if not vfs.exists("/disk" .. i) then
-							vfs.mount("/disk/" .. nID, "/disk" .. i)
+							vfs.mount("/disk/" .. nID, "/disk" .. i, side)
 							break
 						end
 						i = i + 1
 					end
 					content.mount = "disk" .. i
 				else
-					vfs.mount("/disk/" .. nID, "/disk")
+					vfs.mount("/disk/" .. nID, "/disk", side)
 					content.mount = "disk"
 				end
 				table.insert(Emulator.eventQueue, {"disk", side})

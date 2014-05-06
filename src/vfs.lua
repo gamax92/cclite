@@ -98,11 +98,11 @@ function vfs.isDirectory(filename)
 	return vfs.isMountPath(filename) or love.filesystem.isDirectory(vfs.fake2real(filename))
 end
 vfs.fsmount = love.filesystem.mount
-function vfs.mount(realPath,fakePath) -- Not the same as love.filesystem.mount
+function vfs.mount(realPath,fakePath,virtualSide) -- Not the same as love.filesystem.mount
 	if vfs.isMountPath(fakePath) then
 		return false
 	end
-	table.insert(mountTable,{vfs.normalize(realPath),fakePath,os.time()}) -- TODO: os.time() doesn't guarentee unix epoch time.
+	table.insert(mountTable,{vfs.normalize(realPath),fakePath,os.time(),virtualSide}) -- TODO: os.time() doesn't guarentee unix epoch time.
 	return true
 end
 function vfs.newFileData(contents,name,decoder)

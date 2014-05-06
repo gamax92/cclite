@@ -75,14 +75,14 @@ function peripheral.base.diskDrive(Computer,sSide)
 					i = 2
 					while true do
 						if not Computer.vfs.exists("/disk" .. i) then
-							Computer.vfs.mount("/disk/" .. nID, "/disk" .. i)
+							Computer.vfs.mount("/disk/" .. nID, "/disk" .. i, side)
 							break
 						end
 						i = i + 1
 					end
 					content.mount = "disk" .. i
 				else
-					Computer.vfs.mount("/disk/" .. nID, "/disk")
+					Computer.vfs.mount("/disk/" .. nID, "/disk", side)
 					content.mount = "disk"
 				end
 				table.insert(Computer.eventQueue, {"disk", side})

@@ -209,8 +209,8 @@ function emu.newComputer(color,id)
 	end
 	
 	Computer.vfs = vfs.newtmpvfs()
-	Computer.vfs.mount("/data/" .. id,"/")
-	Computer.vfs.mount("/lua/rom","/rom")
+	Computer.vfs.mount("/data/" .. id,"/","hdd")
+	Computer.vfs.mount("/lua/rom","/rom","rom")
 	
 	Computer.frame = loveframes.Create("frame")
 	Computer.frame.emu = Computer

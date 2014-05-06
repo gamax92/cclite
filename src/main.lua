@@ -523,7 +523,7 @@ function love.mousepressed(x, y, button)
 		end
 		table.insert(Computer.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
 	elseif button == "wu" then -- Scroll up
-		table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseX})
+		table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseY})
 	elseif button == "wd" then -- Scroll down
 		table.insert(Computer.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
 	end

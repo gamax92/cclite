@@ -100,11 +100,11 @@ function vfs.newtmpvfs()
 		return tmpvfs.isMountPath(filename) or love.filesystem.isDirectory(tmpvfs.fake2real(filename))
 	end
 	tmpvfs.fsmount = love.filesystem.mount
-	function tmpvfs.mount(realPath,fakePath) -- Not the same as love.filesystem.mount
+	function tmpvfs.mount(realPath,fakePath,virtualSide) -- Not the same as love.filesystem.mount
 		if tmpvfs.isMountPath(fakePath) then
 			return false
 		end
-		table.insert(mountTable,{vfs.normalize(realPath),fakePath,os.time()}) -- TODO: os.time() doesn't guarentee unix epoch time.
+		table.insert(mountTable,{vfs.normalize(realPath),fakePath,os.time(),virtualSide}) -- TODO: os.time() doesn't guarentee unix epoch time.
 		return true
 	end
 	function tmpvfs.newFileData(contents,name,decoder)

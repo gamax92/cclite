@@ -30,6 +30,9 @@ local defaultConf = [[_conf = {
 	
 	-- Check for updates
 	cclite_updateChecker = true,
+
+	-- Use orange theme instead of blue theme
+	orangeTheme = true
 }
 ]]
 
@@ -720,7 +723,7 @@ function love.run()
 
 		if not love.window.isVisible() then Screen.dirty = false end
 		if true then --Screen.dirty then
-			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)
+			love.graphics.setColor(255, 153, 0, 200)
 			love.graphics.rectangle("fill", 0, 0, L2DScreenW, L2DScreenH)
 			loveframes.draw()
 			-- Render emulator elements

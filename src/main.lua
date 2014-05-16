@@ -30,6 +30,9 @@ local defaultConf = [[_conf = {
 	
 	-- Check for updates
 	cclite_updateChecker = true,
+
+	-- Use orange theme instead of blue theme
+	orangeTheme = true
 }
 ]]
 
@@ -183,7 +186,7 @@ keys = {
 	["capslock"] = 58,
 	["numlock"] = 69,
 	["scrolllock"] = 70,
-	
+
 	["f1"] = 59,
 	["f2"] = 60,
 	["f3"] = 61,
@@ -377,6 +380,15 @@ local function ui_aboutBox()
 	about.oText:SetText("CCLite by Gamax92. \n \n Credits: \n Sorroko: Original CCLite \n PixelToast: Fixes to CCLite \n #lua @ freenode: Code pieces \n #love @ OFTC: Support \n CC Devs: ComputerCraft \n Searge: Fernflower :P \n nikolairesokav: LoveFrames")
 end
 
+local function ui_openDataFolder()
+	if love.filesystem.isFused() then
+		love.system.openURL("file://"..love.filesystem.getAppdataDirectory().."/ccemu/data")
+	else
+		love.system.openURL("file://"..love.filesystem.getAppdataDirectory().."/love/ccemu/data")
+	end
+	--love.system.openURL("file://"..love.filesystem.getAppdataDirectory()..(love.filesystem.isFused() and "/ccemu/data") or "/love/ccemu/data")
+end
+
 function love.load()
 	if love.system.getOS() == "Android" then
 		love.keyboard.setTextInput(true)
@@ -387,13 +399,13 @@ function love.load()
 	end
 
 	require("libraries.loveframes")
-	
+
 	-- LoveFrames has no Menu Bar objects, emulate one.
 	menubar = loveframes.Create("panel")
 	menubar:SetSize(L2DScreenW, 25)
 	menubar.buttons = {}
 	local offset = 0
-	
+
 	local function addMenuBtn(data)
 		local menu = {}
 		menu.menu = loveframes.Create("menu")
@@ -417,11 +429,13 @@ function love.load()
 		table.insert(menubar.buttons, menu)
 		offset = offset + smallfont:getWidth(data.name) + 14
 	end
-	
+
 	addMenuBtn({
 		name = "File",
 		options = {
 			{"Edit Config",ui_editConfig},
+			{},
+			{"Open data folder", ui_openDataFolder},
 			{},
 			{"Exit",function() love.event.quit() end}
 		}
@@ -460,7 +474,7 @@ function love.load()
 	if not love.filesystem.exists("data/") then
 		love.filesystem.createDirectory("data/") -- Make the user data folder
 	end
-	
+
 	love.keyboard.setKeyRepeat(true)
 end
 
@@ -625,12 +639,12 @@ function love.run()
 	math.random() math.random()
 
 	love.event.pump()
-	
+
 	love.load(arg)
-	
+
 	-- We don't want the first frame's dt to include time taken by love.load.
     love.timer.step()
-	
+
 	local dt = 0
 
 	-- Main loop time.
@@ -672,17 +686,17 @@ function love.run()
 				_updateCheck.working = false
 			end
 		end
-		
+
 		-- Check HTTP requests
 		HttpRequest.checkRequests()
-		
+
 		if _conf.lockfps > 0 then next_time = next_time + min_dt end
-		
+
 		-- Call update and draw
 		for k,v in pairs(Emulator.computers) do
 			v:update(dt)
 		end
-		
+
 		-- Cleanup dead computers.
 		local deloff = 0
 		for i = 1,#Emulator.computers do
@@ -691,7 +705,7 @@ function love.run()
 				deloff = deloff + 1
 			end
 		end
-		
+
 		loveframes.update(dt)
 
 		-- Messages
@@ -709,7 +723,7 @@ function love.run()
 
 		if not love.window.isVisible() then Screen.dirty = false end
 		if true then --Screen.dirty then
-			love.graphics.setColor(0x83, 0xC0, 0xF0, 255)
+			love.graphics.setColor(255, 153, 0, 200)
 			love.graphics.rectangle("fill", 0, 0, L2DScreenW, L2DScreenH)
 			loveframes.draw()
 			-- Render emulator elements

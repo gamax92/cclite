@@ -147,7 +147,7 @@ skin.controls.menu_body_color                       = {255, 255, 255, 255}
 -- menuoption
 skin.controls.menuoption_body_hover_color           = {51, 204, 255, 255}
 skin.controls.menuoption_text_hover_color           = {255, 255, 255, 255}
-skin.controls.menuoption_text_color                 = {180, 180, 180, 255}
+skin.controls.menuoption_text_color                 = {0, 0, 0, 200}
 
 --[[---------------------------------------------------------
 	- func: OutlinedRectangle(x, y, width, height, ovt, ovb, ovl, ovr)

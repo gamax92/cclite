@@ -673,6 +673,8 @@ local function contains(pathA, pathB)
 end
 
 local function recurse_spec(results, path, spec)
+	if spec:sub(1,1) == "/" then spec = spec:sub(2) end
+	if spec:sub(-1,-1) == "/" then spec = spec:sub(1,-2) end
 	local segment = spec:match('([^/]*)'):gsub('/', '')
 	local pattern = '^' .. segment:gsub('[*]', '.+'):gsub('?', '.') .. '$'
 

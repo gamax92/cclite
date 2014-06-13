@@ -642,7 +642,7 @@ local function cleanPath(path,wildcard)
 	local tPath = {}
 	for part in cleanName:gmatch("[^/]+") do
    		if part ~= "" and part ~= "." then
-   			if part == ".." and #tPath > 0 and tPath[1] ~= ".." then
+   			if part == ".." and #tPath > 0 and tPath[#tPath] ~= ".." then
    				table.remove(tPath)
    			else
    				table.insert(tPath, part:sub(1,255))

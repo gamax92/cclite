@@ -679,8 +679,6 @@ local function contains(pathA, pathB)
 end
 
 local function recurse_spec(results, path, spec)
-	if spec:sub(1,1) == "/" then spec = spec:sub(2) end
-	if spec:sub(-1,-1) == "/" then spec = spec:sub(1,-2) end
 	local segment = spec:match('([^/]*)'):gsub('/', '')
 	local pattern = '^' .. segment:gsub("[%.%[%]%(%)%%%+%-%?%^%$]","%%%1"):gsub("%z","%%z"):gsub("%*",".+") .. '$'
 
@@ -689,11 +687,11 @@ local function recurse_spec(results, path, spec)
 			if file:match(pattern) then
 				local f = api.fs.combine(path, file)
 
+				if spec == segment then
+					table.insert(results, f)
+				end
 				if api.fs.isDir(f) then
-					table.insert(results, f)
 					recurse_spec(results, f, spec:sub(#segment + 2))
-				elseif spec == segment then
-					table.insert(results, f)
 				end
 			end
 		end

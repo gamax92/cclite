@@ -53,14 +53,14 @@ function api.init(Computer,color,id)
 
 	-- Needed for term.write, (file).write, and (file).writeLine
 	-- This serialzier is bad, it is supposed to be bad. Don't use it.
-	local function serializeImpl(t, tTracking)	
+	local function serializeImpl(t, tTracking)
 		local sType = type(t)
 		if sType == "table" then
 			if tTracking[t] ~= nil then
 				return nil
 			end
 			tTracking[t] = true
-			
+
 			local result = "{"
 			for k,v in pairs(t) do
 				local cache1 = serializeImpl(k, tTracking)
@@ -319,8 +319,8 @@ function api.init(Computer,color,id)
 
 	tmpapi.term = {}
 	function tmpapi.term.clear()
-		for y = 1, _conf.terminal_height do
-			for x = 1, _conf.terminal_width do
+		for y = 1, Computer.term_height do
+			for x = 1, Computer.term_width do
 				Computer.textB[y][x] = " "
 				Computer.backgroundColourB[y][x] = Computer.state.bg
 				Computer.textColourB[y][x] = 1
@@ -329,10 +329,10 @@ function api.init(Computer,color,id)
 		Screen.dirty = true
 	end
 	function tmpapi.term.clearLine()
-		if Computer.state.cursorY > _conf.terminal_height or Computer.state.cursorY < 1 then
+		if Computer.state.cursorY > Computer.term_height or Computer.state.cursorY < 1 then
 			return
 		end
-		for x = 1, _conf.terminal_width do
+		for x = 1, Computer.term_width do
 			Computer.textB[Computer.state.cursorY][x] = " "
 			Computer.backgroundColourB[Computer.state.cursorY][x] = Computer.state.bg
 			Computer.textColourB[Computer.state.cursorY][x] = 1
@@ -340,7 +340,7 @@ function api.init(Computer,color,id)
 		Screen.dirty = true
 	end
 	function tmpapi.term.getSize()
-		return _conf.terminal_width, _conf.terminal_height
+		return Computer.term_width, Computer.term_height
 	end
 	function tmpapi.term.getCursorPos()
 		return Computer.state.cursorX, Computer.state.cursorY
@@ -354,7 +354,7 @@ function api.init(Computer,color,id)
 	end
 	function tmpapi.term.write(text)
 		text = serialize(text)
-		if Computer.state.cursorY > _conf.terminal_height or Computer.state.cursorY < 1 or Computer.state.cursorX > _conf.terminal_width then
+		if Computer.state.cursorY > Computer.term_height or Computer.state.cursorY < 1 or Computer.state.cursorX > Computer.term_width then
 			Computer.state.cursorX = Computer.state.cursorX + #text
 			return
 		end
@@ -362,7 +362,7 @@ function api.init(Computer,color,id)
 		for i = 1, #text do
 			local char = text:sub(i, i)
 			if Computer.state.cursorX + i - 1 >= 1 then
-				if Computer.state.cursorX + i - 1 > _conf.terminal_width then
+				if Computer.state.cursorX + i - 1 > Computer.term_width then
 					break
 				end
 				Computer.textB[Computer.state.cursorY][Computer.state.cursorX + i - 1] = char
@@ -412,27 +412,27 @@ function api.init(Computer,color,id)
 		local textBuffer = {}
 		local backgroundColourBuffer = {}
 		local textColourBuffer = {}
-		for y = 1, _conf.terminal_height do
-			if y - n > 0 and y - n <= _conf.terminal_height then
+		for y = 1, Computer.term_height do
+			if y - n > 0 and y - n <= Computer.term_height then
 				textBuffer[y - n] = {}
 				backgroundColourBuffer[y - n] = {}
 				textColourBuffer[y - n] = {}
-				for x = 1, _conf.terminal_width do
+				for x = 1, Computer.term_width do
 					textBuffer[y - n][x] = Computer.textB[y][x]
 					backgroundColourBuffer[y - n][x] = Computer.backgroundColourB[y][x]
 					textColourBuffer[y - n][x] = Computer.textColourB[y][x]
 				end
 			end
 		end
-		for y = 1, _conf.terminal_height do
+		for y = 1, Computer.term_height do
 			if textBuffer[y] ~= nil then
-				for x = 1, _conf.terminal_width do
+				for x = 1, Computer.term_width do
 					Computer.textB[y][x] = textBuffer[y][x]
 					Computer.backgroundColourB[y][x] = backgroundColourBuffer[y][x]
 					Computer.textColourB[y][x] = textColourBuffer[y][x]
 				end
 			else
-				for x = 1, _conf.terminal_width do
+				for x = 1, Computer.term_width do
 					Computer.textB[y][x] = " "
 					Computer.backgroundColourB[y][x] = Computer.state.bg
 					Computer.textColourB[y][x] = 1 -- Don't need to bother setting text color
@@ -517,7 +517,7 @@ function api.init(Computer,color,id)
 		local from = s:match"^%s*()"
 		return from > #s and "" or s:match(".*%S", from)
 	end
-	
+
 	if _conf.enableAPI_http then
 		tmpapi.http = {}
 		function tmpapi.http.request(sUrl, sParams)
@@ -644,7 +644,7 @@ function api.init(Computer,color,id)
 
 	local function cleanPath(path,wildcard)
 		local path = path:gsub("\\", "/")
-	
+
 		local cleanName = ""
 		for i = 1,#path do
 			local c = path:byte(i,i)
@@ -652,7 +652,7 @@ function api.init(Computer,color,id)
 				cleanName = cleanName .. string.char(c)
 			end
 		end
-	
+
 		local tPath = {}
 		for part in cleanName:gmatch("[^/]+") do
 	   		if part ~= "" and part ~= "." then
@@ -931,7 +931,7 @@ function api.init(Computer,color,id)
 		toPath = cleanPath(toPath, false)
 		if toPath == ".." or toPath:sub(1,3) == "../" then error("Invalid Path",2) end
 
-		if fromPath == "rom" or fromPath:sub(1, 4) == "rom/" or 
+		if fromPath == "rom" or fromPath:sub(1, 4) == "rom/" or
 			toPath == "rom" or toPath:sub(1, 4) == "rom/" then
 			error("Access Denied",2)
 		end
@@ -1256,10 +1256,14 @@ function api.init(Computer,color,id)
 			traceback = debug.traceback,
 		}
 	end
+
+	if Computer.type == "pocket" then
+		tmpapi.env.pocket = {}
+	end
+
 	tmpapi.env.rs = tmpapi.env.redstone
 	tmpapi.env.math.mod = nil
 	tmpapi.env.string.gfind = nil
 	tmpapi.env._G = tmpapi.env
 	return tmpapi
 end
-

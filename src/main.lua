@@ -3,31 +3,31 @@ local messageCache = {}
 local defaultConf = [[_conf = {
 	-- Enable the "http" API on Computers
 	enableAPI_http = true,
-	
+
 	-- Enable the "cclite" API on Computers
 	enableAPI_cclite = true,
-	
+
 	-- The height of Computer screens, in characters
 	terminal_height = 19,
-	
+
 	-- The width of Computer screens, in characters
 	terminal_width = 51,
-	
+
 	-- The GUI scale of Computer screens
 	terminal_guiScale = 2,
-	
+
 	-- Enable display of emulator FPS
 	cclite_showFPS = false,
-	
+
 	-- The FPS to lock CCLite to
 	lockfps = 20,
-	
+
 	-- Enable https connections through luasec
 	useLuaSec = false,
-	
+
 	-- Enable usage of Carrage Return for fs.writeLine
 	useCRLF = false,
-	
+
 	-- Check for updates
 	cclite_updateChecker = true,
 }
@@ -183,7 +183,7 @@ keys = {
 	["capslock"] = 58,
 	["numlock"] = 69,
 	["scrolllock"] = 70,
-	
+
 	["f1"] = 59,
 	["f2"] = 60,
 	["f3"] = 61,
@@ -286,15 +286,13 @@ local function ui_editConfig()
 				validateConfig(cfgData, function(cfgCache)
 					-- Config was good, modify things as needed.
 					love.filesystem.write("/CCLite.cfg", cfgData)
-					Screen.sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
-					Screen.sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
 					Screen.pixelWidth = _conf.terminal_guiScale * 6
 					Screen.pixelHeight = _conf.terminal_guiScale * 9
 					for i = 32,126 do Screen.tOffset[string.char(i)] = math.floor(3 - Screen.font:getWidth(string.char(i)) / 2) * _conf.terminal_guiScale end
 					Screen.tOffset["@"] = 0
 					Screen.tOffset["~"] = 0
 					for k,v in pairs(Emulator.computers) do
-						v.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
+						v.frame:SetSize(Screen:sWidth(v) + 2, Screen:sHeight(v) + 26)
 						if cfgCache.terminal_height < _conf.terminal_height then
 							for y = 1,cfgCache.terminal_height do
 								for x = cfgCache.terminal_width + 1,_conf.terminal_width do
@@ -345,6 +343,29 @@ local function _ui_newComputerBox(name)
 	return prompt
 end
 
+local function ui_newNormalPocketComputer()
+	local prompt = _ui_newComputerBox("Create Normal Pocket Computer")
+	function prompt.OK_btn:OnClick()
+		local compu = emu.newComputer(false, tonumber(prompt.input_box:GetText()) or 0, 'pocket')
+		compu:start()
+		table.insert(Emulator.computers,compu)
+		prompt:Remove()
+	end
+	prompt.input_box.OnEnter = prompt.OK_btn.OnClick
+end
+
+local function ui_newAdvancedPocketComputer()
+	local prompt = _ui_newComputerBox("Create Advanced Pocket Computer")
+	function prompt.OK_btn:OnClick()
+		local compu = emu.newComputer(true, tonumber(prompt.input_box:GetText()) or 0, 'pocket')
+		compu:start()
+		table.insert(Emulator.computers,compu)
+		prompt:Remove()
+	end
+	prompt.input_box.OnEnter = prompt.OK_btn.OnClick
+end
+
+
 local function ui_newNormalComputer()
 	local prompt = _ui_newComputerBox("Create Normal Computer")
 	function prompt.OK_btn:OnClick()
@@ -381,19 +402,19 @@ function love.load()
 	if love.system.getOS() == "Android" then
 		love.keyboard.setTextInput(true)
 	end
-	if _conf.lockfps > 0 then 
+	if _conf.lockfps > 0 then
 		min_dt = 1/_conf.lockfps
 		next_time = love.timer.getTime()
 	end
 
 	require("libraries.loveframes")
-	
+
 	-- LoveFrames has no Menu Bar objects, emulate one.
 	menubar = loveframes.Create("panel")
 	menubar:SetSize(L2DScreenW, 25)
 	menubar.buttons = {}
 	local offset = 0
-	
+
 	local function addMenuBtn(data)
 		local menu = {}
 		menu.menu = loveframes.Create("menu")
@@ -417,7 +438,7 @@ function love.load()
 		table.insert(menubar.buttons, menu)
 		offset = offset + smallfont:getWidth(data.name) + 14
 	end
-	
+
 	addMenuBtn({
 		name = "File",
 		options = {
@@ -431,6 +452,8 @@ function love.load()
 		options = {
 			{"Normal Computer",ui_newNormalComputer},
 			{"Advanced Computer",ui_newAdvancedComputer},
+			{"Normal Pocket Computer",ui_newNormalPocketComputer},
+			{"Advanced Pocket Computer",ui_newAdvancedPocketComputer},
 		}
 	})
 	addMenuBtn({
@@ -460,7 +483,7 @@ function love.load()
 	if not love.filesystem.exists("data/") then
 		love.filesystem.createDirectory("data/") -- Make the user data folder
 	end
-	
+
 	love.keyboard.setKeyRepeat(true)
 end
 
@@ -504,7 +527,7 @@ function love.mousepressed(x, y, button)
 	-- Does the computer support mouse?
 	if not Computer.colored then return end
 	-- Are we clicking on the computer?
-	if x <= Computer.frame.x or x >= Computer.frame.x + Screen.sWidth + 1 or y <= Computer.frame.y + 24 or y >= Computer.frame.y + Screen.sHeight + 25 then -- Not clicking on computer
+	if x <= Computer.frame.x or x >= Computer.frame.x + Screen:sWidth(Computer) + 1 or y <= Computer.frame.y + 24 or y >= Computer.frame.y + Screen:sHeight(Computer) + 25 then -- Not clicking on computer
 		return
 	end
 	-- Adjust for offset
@@ -625,12 +648,12 @@ function love.run()
 	math.random() math.random()
 
 	love.event.pump()
-	
+
 	love.load(arg)
-	
+
 	-- We don't want the first frame's dt to include time taken by love.load.
     love.timer.step()
-	
+
 	local dt = 0
 
 	-- Main loop time.
@@ -672,17 +695,17 @@ function love.run()
 				_updateCheck.working = false
 			end
 		end
-		
+
 		-- Check HTTP requests
 		HttpRequest.checkRequests()
-		
+
 		if _conf.lockfps > 0 then next_time = next_time + min_dt end
-		
+
 		-- Call update and draw
 		for k,v in pairs(Emulator.computers) do
 			v:update(dt)
 		end
-		
+
 		-- Cleanup dead computers.
 		local deloff = 0
 		for i = 1,#Emulator.computers do
@@ -691,7 +714,7 @@ function love.run()
 				deloff = deloff + 1
 			end
 		end
-		
+
 		loveframes.update(dt)
 
 		-- Messages
@@ -720,7 +743,7 @@ function love.run()
 			end
 		end
 
-		if _conf.lockfps > 0 then 
+		if _conf.lockfps > 0 then
 			local cur_time = love.timer.getTime()
 			if next_time < cur_time then
 				next_time = cur_time

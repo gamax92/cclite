@@ -3,7 +3,7 @@ local function math_bind(val,lower,upper)
 end
 
 emu = {}
-function emu.newComputer(color,id)
+function emu.newComputer(color,id, type)
 	local Computer = {
 		colored = color,
 		running = false,
@@ -40,30 +40,41 @@ function emu.newComputer(color,id)
 		backgroundColourB = {},
 		textColourB = {},
 		dead = false,
+		type = type,
+
+		term_height = 19,
+		term_width = 51,
 	}
-	for y = 1, _conf.terminal_height do
+
+	if type == "pocket" then
+		Computer.term_height = 20
+		Computer.term_width = 26
+	end
+
+	for y = 1, Computer.term_height do
 		Computer.textB[y] = {}
 		Computer.backgroundColourB[y] = {}
 		Computer.textColourB[y] = {}
-		for x = 1, _conf.terminal_width do
+		for x = 1, Computer.term_width do
 			Computer.textB[y][x] = " "
 			Computer.backgroundColourB[y][x] = 32768
 			Computer.textColourB[y][x] = 1
 		end
 	end
 
+
 	function Computer:start()
 		self.reboot = false
-		for y = 1, _conf.terminal_height do
+		for y = 1, Computer.term_height do
 			local screen_textB = Computer.textB[y]
 			local screen_backgroundColourB = Computer.backgroundColourB[y]
-			for x = 1, _conf.terminal_width do
+			for x = 1, Computer.term_width do
 				screen_textB[x] = " "
 				screen_backgroundColourB[x] = 32768
 			end
 		end
 		Screen.dirty = true
-		self.api = api.init(self,color,id)
+		self.api = api.init(self,color,id,type)
 		self.state.cursorX = 1
 		self.state.cursorY = 1
 		self.state.bg = 32768
@@ -117,7 +128,7 @@ function emu.newComputer(color,id)
 		self.blockInput = false
 		return ok, err
 	end
-	
+
 	local function updateShortcut(name, key1, key2, cb)
 		if Computer.actions[name] ~= nil then
 			if love.keyboard.isDown(key1) and love.keyboard.isDown(key2) then
@@ -178,7 +189,7 @@ function emu.newComputer(color,id)
 				self.actions.alarms[k] = nil
 			end
 		end
-		
+
 		-- Mouse
 		if self.mouse.isPressed then
 			local mouseX = love.mouse.getX() - Computer.frame.x - 1
@@ -186,8 +197,8 @@ function emu.newComputer(color,id)
 			local termMouseX = math_bind(math.floor((mouseX - _conf.terminal_guiScale) / Screen.pixelWidth) + 1, 1, _conf.terminal_width)
 			local termMouseY = math_bind(math.floor((mouseY - _conf.terminal_guiScale) / Screen.pixelHeight) + 1, 1, _conf.terminal_width)
 			if (termMouseX ~= self.mouse.lastTermX or termMouseY ~= self.mouse.lastTermY)
-				and (mouseX > 0 and mouseX < Screen.sWidth and
-					mouseY > 0 and mouseY < Screen.sHeight) then
+				and (mouseX > 0 and mouseX < Screen:sWidth(self)  and
+					mouseY > 0 and mouseY < Screen:sHeight(Computer) ) then
 
 				self.mouse.lastTermX = termMouseX
 				self.mouse.lastTermY = termMouseY
@@ -207,15 +218,15 @@ function emu.newComputer(color,id)
 	if not love.filesystem.exists("data/" .. id .. "/") then
 		love.filesystem.createDirectory("data/" .. id .. "/")
 	end
-	
+
 	Computer.vfs = vfs.newtmpvfs()
 	Computer.vfs.mount("/data/" .. id,"/","hdd")
 	Computer.vfs.mount("/lua/rom","/rom","rom")
-	
+
 	Computer.frame = loveframes.Create("frame")
 	Computer.frame.emu = Computer
 	Computer.frame:SetName((color and "Advanced" or "Normal") .. " Computer")
-	Computer.frame:SetSize(Screen.sWidth + 2, Screen.sHeight + 26)
+	Computer.frame:SetSize(Screen:sWidth(Computer)  + 2, Screen:sHeight(Computer)  + 26)
 	Computer.frame:CenterWithinArea(0, 0, love.window.getDimensions())
 	if Computer.frame.y < -22 then
 		Computer.frame.y = -22

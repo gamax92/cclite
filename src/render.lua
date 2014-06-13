@@ -43,8 +43,6 @@ end
 COLOUR_CODE_BG[32768] = {0,0,0}
 
 Screen = {
-	sWidth = (_conf.terminal_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
-	sHeight = (_conf.terminal_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2),
 	font = nil,
 	pixelWidth = _conf.terminal_guiScale * 6,
 	pixelHeight = _conf.terminal_guiScale * 9,
@@ -92,6 +90,14 @@ end
 
 local messages = {}
 
+function Screen:sWidth(Emulator)
+	return (Emulator.term_width * 6 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
+end
+
+function Screen:sHeight(Emulator)
+	return (Emulator.term_height * 9 * _conf.terminal_guiScale) + (_conf.terminal_guiScale * 2)
+end
+
 function Screen:message(message)
 	for i = 1,9 do
 		self.messages[i] = self.messages[i+1]
@@ -108,14 +114,14 @@ function Screen:drawMessage(message,x,y)
 end
 
 function Screen:draw(Emulator)
-	local decWidth = _conf.terminal_width - 1
-	local decHeight = _conf.terminal_height - 1
+	local decWidth = Emulator.term_width - 1
+	local decHeight = Emulator.term_height - 1
 	-- Setup font
 	love.graphics.setFont(self.font)
 	-- Render terminal
 	if not Emulator.running then
 		setColor(COLOUR_FULL_BLACK,true)
-		ldrawRect("fill", 0, 0, self.sWidth, self.sHeight)
+		ldrawRect("fill", 0, 0, self:sWidth(Emulator), self:sHeight(Emulator))
 	else
 		-- Render background color
 		setColor(COLOUR_CODE_BG[Emulator.backgroundColourB[1][1]],true)
@@ -147,7 +153,7 @@ function Screen:draw(Emulator)
 		end
 
 		-- Render cursor
-		if Emulator.state.blink and self.showCursor and Emulator.state.cursorX >= 1 and Emulator.state.cursorX <= _conf.terminal_width and Emulator.state.cursorY >= 1 and Emulator.state.cursorY <= _conf.terminal_height then
+		if Emulator.state.blink and self.showCursor and Emulator.state.cursorX >= 1 and Emulator.state.cursorX <= Emulator.term_width and Emulator.state.cursorY >= 1 and Emulator.state.cursorY <= Emulator.term_height then
 			setColor(COLOUR_CODE[Emulator.state.fg])
 			lprint("_", (Emulator.state.cursorX - 1) * self.pixelWidth + tOffset["_"], (Emulator.state.cursorY - 1) * self.pixelHeight, 0, _conf.terminal_guiScale, _conf.terminal_guiScale)
 		end
@@ -155,6 +161,6 @@ function Screen:draw(Emulator)
 	end
 
 	if _conf.cclite_showFPS then
-		self:drawMessage("FPS: " .. Emulator.FPS, self.sWidth - (49 * _conf.terminal_guiScale), _conf.terminal_guiScale * 2)
+		self:drawMessage("FPS: " .. Emulator.FPS, self:sWidth(Emulator) - (49 * _conf.terminal_guiScale), _conf.terminal_guiScale * 2)
 	end
 end

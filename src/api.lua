@@ -515,10 +515,10 @@ if _conf.enableAPI_http then
 		end
 		local goodUrl = string_trim(sUrl)
 		if goodUrl:sub(1,4) == "ftp:" or goodUrl:sub(1,5) == "file:" or goodUrl:sub(1,7) == "mailto:" then
-			error("Not an HTTP URL",2)
+			error("URL not http",2)
 		end
 		if goodUrl:sub(1,5) ~= "http:" and goodUrl:sub(1,6) ~= "https:" then
-			error("Invalid URL",2)
+			error("URL malformed",2)
 		end
 		local http = HttpRequest.new()
 		local method = sParams and "POST" or "GET"
@@ -764,7 +764,7 @@ function api.fs.exists(...)
 	end
 
 	path = cleanPath(path)
-	if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+	if path == ".." or path:sub(1,3) == "../" then return false end
 
 	return vfs.exists(path)
 end
@@ -775,7 +775,7 @@ function api.fs.isDir(...)
 	end
 
 	path = cleanPath(path)
-	if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+	if path == ".." or path:sub(1,3) == "../" then return false end
 
 	return vfs.isDirectory(path)
 end
@@ -919,9 +919,9 @@ function api.fs.move(...)
 	toPath = cleanPath(toPath, false)
 	if toPath == ".." or toPath:sub(1,3) == "../" then error("Invalid Path",2) end
 
-	if fromPath == "rom" or fromPath:sub(1, 4) == "rom/" or 
+	if fromPath == "rom" or fromPath:sub(1, 4) == "rom/" or
 		toPath == "rom" or toPath:sub(1, 4) == "rom/" then
-		error("Access Denied",2)
+		error("Access denied",2)
 	end
 	if not vfs.exists(fromPath) then
 		error("No such file",2)
@@ -946,7 +946,7 @@ function api.fs.copy(...)
 	if toPath == ".." or toPath:sub(1,3) == "../" then error("Invalid Path",2) end
 
 	if toPath == "rom" or toPath:sub(1, 4) == "rom/" then
-		error("Access Denied",2)
+		error("Access denied",2)
 	elseif not vfs.exists(fromPath) then
 		error("No such file",2)
 	elseif vfs.exists(toPath) then
@@ -1022,6 +1022,29 @@ function api.redstone.getAnalogOutput(side)
 	end
 	return 0
 end
+function api.redstone.getAnalogueInput(side)
+	if type(side) ~= "string" then
+		error("Expected string",2)
+	elseif side~="top" and side~="bottom" and side~="left" and side~="right" and side~="front" and side~="back" then
+		error("Invalid side.",2)
+	end
+	return 0
+end
+function api.redstone.setAnalogueOutput(side, strength)
+	if type(side) ~= "string" or type(strength) ~= "number" then
+		error("Expected string, number",2)
+	elseif side~="top" and side~="bottom" and side~="left" and side~="right" and side~="front" and side~="back" then
+		error("Invalid side.",2)
+	end
+end
+function api.redstone.getAnalogueOutput(side)
+	if type(side) ~= "string" then
+		error("Expected string",2)
+	elseif side~="top" and side~="bottom" and side~="left" and side~="right" and side~="front" and side~="back" then
+		error("Invalid side.",2)
+	end
+	return 0
+end
 function api.redstone.getBundledInput(side)
 	if type(side) ~= "string" then
 		error("Expected string",2)
@@ -1064,6 +1087,8 @@ function api.bit.blshift(n, bits)
 		error("number expected",2)
 	elseif n == nil or bits == nil then
 		error("too few arguments",2)
+	elseif n > 0xFFFFFFFF or bits > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.lshift(n, bits))
 end
@@ -1072,6 +1097,8 @@ function api.bit.brshift(n, bits)
 		error("number expected",2)
 	elseif n == nil or bits == nil then
 		error("too few arguments",2)
+	elseif n > 0xFFFFFFFF or bits > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.arshift(n, bits))
 end
@@ -1080,6 +1107,8 @@ function api.bit.blogic_rshift(n, bits)
 		error("number expected",2)
 	elseif n == nil or bits == nil then
 		error("too few arguments",2)
+	elseif n > 0xFFFFFFFF or bits > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.rshift(n, bits))
 end
@@ -1088,6 +1117,8 @@ function api.bit.bxor(m, n)
 		error("number expected",2)
 	elseif m == nil or n == nil then
 		error("too few arguments",2)
+	elseif m > 0xFFFFFFFF or n > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.bxor(m, n))
 end
@@ -1096,6 +1127,8 @@ function api.bit.bor(m, n)
 		error("number expected",2)
 	elseif m == nil or n == nil then
 		error("too few arguments",2)
+	elseif m > 0xFFFFFFFF or n > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.bor(m, n))
 end
@@ -1104,6 +1137,8 @@ function api.bit.band(m, n)
 		error("number expected",2)
 	elseif m == nil or n == nil then
 		error("too few arguments",2)
+	elseif m > 0xFFFFFFFF or n > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.band(m, n))
 end
@@ -1112,6 +1147,8 @@ function api.bit.bnot(n)
 		error("number expected",2)
 	elseif n == nil then
 		error("too few arguments",2)
+	elseif n > 0xFFFFFFFF then
+		error("number is too large (maximum allowed: 2^32-1)",2)
 	end
 	return api.bit.norm(bit.bnot(n))
 end
@@ -1210,12 +1247,12 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 			getBundledOutput = api.redstone.getBundledOutput,
 			getAnalogInput = api.redstone.getAnalogInput,
 			getAnalogOutput = api.redstone.getAnalogOutput,
-			getAnalogueInput = api.redstone.getAnalogInput,
-			getAnalogueOutput = api.redstone.getAnalogOutput,
+			getAnalogueInput = api.redstone.getAnalogueInput,
+			getAnalogueOutput = api.redstone.getAnalogueOutput,
 			setOutput = api.redstone.setOutput,
 			setBundledOutput = api.redstone.setBundledOutput,
 			setAnalogOutput = api.redstone.setAnalogOutput,
-			setAnalogueOutput = api.redstone.setAnalogOutput,
+			setAnalogueOutput = api.redstone.setAnalogueOutput,
 			testBundledInput = api.redstone.testBundledInput,
 		},
 		bit = {

@@ -701,11 +701,11 @@ function api.init(Computer,color,id)
 				if file:match(pattern) then
 					local f = tmpapi.fs.combine(path, file)
 
+					if spec == segment then
+						table.insert(results, f)
+					end
 					if tmpapi.fs.isDir(f) then
-						table.insert(results, f)
 						recurse_spec(results, f, spec:sub(#segment + 2))
-					elseif spec == segment then
-						table.insert(results, f)
 					end
 				end
 			end

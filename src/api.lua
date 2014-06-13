@@ -641,37 +641,43 @@ function api.init(Computer,color,id)
 	end
 
 	tmpapi.fs = {}
+
+	local function cleanPath(path,wildcard)
+		local path = path:gsub("\\", "/")
+	
+		local cleanName = ""
+		for i = 1,#path do
+			local c = path:byte(i,i)
+			if c >= 32 and c ~= 34 and c ~= 58 and c ~= 60 and c ~= 62 and c ~= 63 and c ~= 124 and (wildcard or c ~= 42) then
+				cleanName = cleanName .. string.char(c)
+			end
+		end
+	
+		local tPath = {}
+		for part in cleanName:gmatch("[^/]+") do
+	   		if part ~= "" and part ~= "." then
+	   			if part == ".." and #tPath > 0 and tPath[1] ~= ".." then
+	   				table.remove(tPath)
+	   			else
+	   				table.insert(tPath, part:sub(1,255))
+	   			end
+	   		end
+		end
+		return table.concat(tPath, "/")
+	end
+
 	function tmpapi.fs.combine(...)
 		local basePath, localPath = ...
 		if type(basePath) ~= "string" or type(localPath) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
-		local path = ("/" .. basePath .. "/" .. localPath):gsub("\\", "/")
-		
-		local cleanName = ""
-		for i = 1,#path do
-			local c = path:sub(i,i):byte()
-			if c >= 32 and c ~= 34 and c ~= 42 and c ~= 58 and c ~= 60 and c ~= 62 and c ~= 63 and c ~= 124 then
-				cleanName = cleanName .. string.char(c)
-			end
-		end
-		
-		local tPath = {}
-		for part in cleanName:gmatch("[^/]+") do
-			if part ~= "" and part ~= "." then
-				if part == ".." and #tPath > 0 and tPath[1] ~= ".." then
-					table.remove(tPath)
-				else
-					table.insert(tPath, part:sub(1,255))
-				end
-			end
-		end
-		return table.concat(tPath, "/")
+
+		return cleanPath(("/" .. basePath .. "/" .. localPath):gsub("\\", "/"), true)
 	end
 
 	local function contains(pathA, pathB)
-		pathA = tmpapi.fs.combine(pathA,"")
-		pathB = tmpapi.fs.combine(pathB,"")
+		pathA = cleanPath(pathA)
+		pathB = cleanPath(pathB)
 
 		if pathB == ".." then
 			return false
@@ -688,7 +694,7 @@ function api.init(Computer,color,id)
 
 	local function recurse_spec(results, path, spec)
 		local segment = spec:match('([^/]*)'):gsub('/', '')
-		local pattern = '^' .. segment:gsub('[*]', '.+'):gsub('?', '.') .. '$'
+		local pattern = '^' .. segment:gsub("[%.%[%]%(%)%%%+%-%?%^%$]","%%%1"):gsub("%z","%%z"):gsub("%*",".+") .. '$'
 
 		if tmpapi.fs.isDir(path) then
 			for _, file in ipairs(tmpapi.fs.list(path)) do
@@ -696,6 +702,7 @@ function api.init(Computer,color,id)
 					local f = tmpapi.fs.combine(path, file)
 
 					if tmpapi.fs.isDir(f) then
+						table.insert(results, f)
 						recurse_spec(results, f, spec:sub(#segment + 2))
 					elseif spec == segment then
 						table.insert(results, f)
@@ -705,19 +712,24 @@ function api.init(Computer,color,id)
 		end
 	end
 
-	-- Such a useless function
 	function tmpapi.fs.getDir(...)
 		local path = ...
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		return tmpapi.fs.combine(path, "..")
+		path = cleanPath(path, true)
+		if #path == 0 then
+			return ".."
+		else
+			return path:match("(.*)/") or ""
+		end
 	end
 	function tmpapi.fs.find(...)
 		local spec = ...
 		if type(spec) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
+		spec = cleanPath(spec, true)
 		local results = {}
 		recurse_spec(results, '', spec)
 		return results
@@ -727,9 +739,12 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or type(mode) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
+		if Computer.vfs.isDirectory(path) then return end
+
 		if mode == "r" then
 			return FileReadHandle(path)
 		elseif mode == "rb" then
@@ -747,9 +762,10 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
 		if not Computer.vfs.exists(path) or not Computer.vfs.isDirectory(path) then
 			error("Not a directory",2)
 		end
@@ -760,9 +776,10 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then return false end
-		path = vfs.normalize(path)
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
 		return Computer.vfs.exists(path)
 	end
 	function tmpapi.fs.isDir(...)
@@ -770,9 +787,10 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then return false end
-		path = vfs.normalize(path)
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
 		return Computer.vfs.isDirectory(path)
 	end
 	function tmpapi.fs.isReadOnly(...)
@@ -780,29 +798,30 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		path = vfs.normalize(path)
-		return path == "/rom" or path:sub(1, 5) == "/rom/"
+		path = cleanPath(path)
+		return path == "rom" or path:sub(1, 4) == "rom/"
 	end
 	function tmpapi.fs.getName(...)
 		local path = ...
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		path = vfs.normalize(path)
-		if path == "/" then
+		path = cleanPath(path, true)
+		if path == "" then
 			return "root"
+		else
+			return path:match(".*/(.+)") or path
 		end
-		local fpath, name, ext = path:match("(.-)([^\\/]-%.?([^%.\\/]*))$")
-		return name
 	end
 	function tmpapi.fs.getDrive(...)
 		local path = ...
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
 		if not Computer.vfs.exists(path) then
 			return
 		end
@@ -814,9 +833,10 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
 		if Computer.vfs.exists(path) ~= true then
 			error("No such file",2)
 		end
@@ -824,9 +844,8 @@ function api.init(Computer,color,id)
 		if Computer.vfs.isDirectory(path) then
 			return 0
 		end
-		
-		local size = Computer.vfs.getSize(path)
-		return math.ceil(size/512)*512
+
+		return Computer.vfs.getSize(path)
 	end
 
 	function tmpapi.fs.getFreeSpace(...)
@@ -834,10 +853,11 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
-		if path == "/rom" or path:sub(1, 5) == "/rom/" then
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
+		if path == "rom" or path:sub(1, 4) == "rom/" then
 			return 0
 		end
 		return math.huge
@@ -848,10 +868,11 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
-		if path == "/rom" or path:sub(1, 5) == "/rom/" then
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
+		if path == "rom" or path:sub(1, 4) == "rom/" then
 			error("Access Denied",2)
 		end
 		if Computer.vfs.exists(path) and not Computer.vfs.isDirectory(path) then
@@ -904,23 +925,21 @@ function api.init(Computer,color,id)
 		if type(fromPath) ~= "string" or type(toPath) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", fromPath)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		local testpath = tmpapi.fs.combine("data/", toPath)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		fromPath = vfs.normalize(fromPath)
-		toPath = vfs.normalize(toPath)
-		if fromPath == "/rom" or fromPath:sub(1, 5) == "/rom/" or 
-			toPath == "/rom" or toPath:sub(1, 5) == "/rom/" then
+
+		fromPath = cleanPath(fromPath, false)
+		if fromPath == ".." or fromPath:sub(1,3) == "../" then error("Invalid Path",2) end
+		toPath = cleanPath(toPath, false)
+		if toPath == ".." or toPath:sub(1,3) == "../" then error("Invalid Path",2) end
+
+		if fromPath == "rom" or fromPath:sub(1, 4) == "rom/" or 
+			toPath == "rom" or toPath:sub(1, 4) == "rom/" then
 			error("Access Denied",2)
 		end
-		if Computer.vfs.exists(fromPath) ~= true then
+		if not Computer.vfs.exists(fromPath) then
 			error("No such file",2)
-		end
-		if Computer.vfs.exists(toPath) == true then
+		elseif Computer.vfs.exists(toPath) then
 			error("File exists",2)
-		end
-		if contains(fromPath, toPath) then
+		elseif contains(fromPath, toPath) then
 			error("Can't move a directory inside itself",2)
 		end
 		copytree(fromPath, toPath)
@@ -932,22 +951,19 @@ function api.init(Computer,color,id)
 		if type(fromPath) ~= "string" or type(toPath) ~= "string" or select("#",...) ~= 2 then
 			error("Expected string, string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", fromPath)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		local testpath = tmpapi.fs.combine("data/", toPath)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		fromPath = vfs.normalize(fromPath)
-		toPath = vfs.normalize(toPath)
-		if toPath == "/rom" or toPath:sub(1, 5) == "/rom/" then
+
+		fromPath = cleanPath(fromPath, false)
+		if fromPath == ".." or fromPath:sub(1,3) == "../" then error("Invalid Path",2) end
+		toPath = cleanPath(toPath, false)
+		if toPath == ".." or toPath:sub(1,3) == "../" then error("Invalid Path",2) end
+
+		if toPath == "rom" or toPath:sub(1, 4) == "rom/" then
 			error("Access Denied",2)
-		end
-		if Computer.vfs.exists(fromPath) ~= true then
+		elseif not Computer.vfs.exists(fromPath) then
 			error("No such file",2)
-		end
-		if Computer.vfs.exists(toPath) == true then
+		elseif Computer.vfs.exists(toPath) then
 			error("File exists",2)
-		end
-		if contains(fromPath, toPath) then
+		elseif contains(fromPath, toPath) then
 			error("Can't copy a directory inside itself",2)
 		end
 		copytree(fromPath, toPath)
@@ -958,10 +974,12 @@ function api.init(Computer,color,id)
 		if type(path) ~= "string" or select("#",...) ~= 1 then
 			error("Expected string",2)
 		end
-		local testpath = tmpapi.fs.combine("data/", path)
-		if testpath:sub(1,5) ~= "data/" and testpath ~= "data" then error("Invalid Path",2) end
-		path = vfs.normalize(path)
-		if path == "/rom" or path:sub(1, 5) == "/rom/" or Computer.vfs.isMountPath(path) then
+
+		path = cleanPath(path)
+		if path == ".." or path:sub(1,3) == "../" then error("Invalid Path",2) end
+
+		if path == "rom" or path:sub(1, 4) == "rom/" or Computer.vfs.isMountPath(path) then
+
 			error("Access Denied",2)
 		end
 		deltree(path)
@@ -1244,3 +1262,4 @@ function api.init(Computer,color,id)
 	tmpapi.env._G = tmpapi.env
 	return tmpapi
 end
+

@@ -1175,7 +1175,7 @@ function api.math.randomseed(num)
 	if type(num)~="number" then
 		error("bad argument #1: number expected, got "..type(num),2)
 	end
-	num=math.floor(num)
+	num=((num==math.huge or num==1/0) and -1) or (num~=num and 0) or math.floor(num)
 	randseed=(ffi.cast("uint64_t",bit.bxor(math.floor(num/2^32)%2^16,5))*2^32)+tonumber(bit.tohex(bit.bxor(num%2^32,0xDEECE66D)),16)
 end
 function api.math.random(a,b)

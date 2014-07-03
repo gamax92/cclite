@@ -1156,8 +1156,8 @@ end
 local ffi=require("ffi")
 local randseed=ffi.new("uint64_t")
 function rnext(bits)
-	seed=(seed*0x5DEECE66D+0xB)%2^48
-	return seed/(2^(48-bits))
+	randseed=(randseed*0x5DEECE66D+0xB)%2^48
+	return randseed/(2^(48-bits))
 end
 function rnextInt(n)
 	if bit.band(n,-n)==bit.tobit(n) then
@@ -1176,7 +1176,7 @@ function api.math.randomseed(num)
 		error("bad argument #1: number expected, got "..type(num),2)
 	end
 	num=math.floor(num)
-	seed=(ffi.cast("uint64_t",bit.bxor(math.floor(num/2^32)%2^16,5))*2^32)+tonumber(bit.tohex(bit.bxor(num%2^32,0xDEECE66D)),16)
+	randseed=(ffi.cast("uint64_t",bit.bxor(math.floor(num/2^32)%2^16,5))*2^32)+tonumber(bit.tohex(bit.bxor(num%2^32,0xDEECE66D)),16)
 end
 function api.math.random(a,b)
 	if b==nil then
@@ -1206,6 +1206,7 @@ function api.math.random(a,b)
 end
 
 function api.init() -- Called after this file is loaded! Important. Else api.x is not defined
+	api.math.randomseed(math.random(0,0xFFFFFFFFFFFF))
 	api.env = {
 		_VERSION = "Luaj-jse 2.0.3",
 		tostring = api.tostring,

@@ -1153,6 +1153,58 @@ function api.bit.bnot(n)
 	return api.bit.norm(bit.bnot(n))
 end
 
+local ffi=require("ffi")
+local randseed=ffi.new("uint64_t")
+function rnext(bits)
+	seed=(seed*0x5DEECE66D+0xB)%2^48
+	return seed/(2^(48-bits))
+end
+function rnextInt(n)
+	if bit.band(n,-n)==bit.tobit(n) then
+		return tonumber((n*rnext(31))/2^31)
+	end
+	local val
+	repeat
+		local bits=tonumber(rnext(31))
+		val=bits%n
+	until val+(n-1)<bits
+	return val
+end
+api.math=tablecopy(math)
+function api.math.randomseed(num)
+	if type(num)~="number" then
+		error("bad argument #1: number expected, got "..type(num),2)
+	end
+	num=math.floor(num)
+	seed=(ffi.cast("uint64_t",bit.bxor(math.floor(num/2^32)%2^16,5))*2^32)+tonumber(bit.tohex(bit.bxor(num%2^32,0xDEECE66D)),16)
+end
+function api.math.random(a,b)
+	if b==nil then
+		if a==nil then
+			local n=tonumber((rnext(26)*(2^27))+rnext(27))/2^53
+			return math.floor(n*10000000+0.5)/10000000
+		else
+			if type(a)~="number" then
+				error("bad argument #1: number expected, got "..type(a),2)
+			elseif a<1 or a==math.huge or a~=a or a==1/0 then
+				error("bad argument #1: interval is empty",2)
+			end
+			return 1+rnextInt(math.floor(a))
+		end
+	else
+		if type(a)~="number" then
+			error("bad argument #1: number expected, got "..type(a),2)
+		elseif type(b)~="number" then
+			error("bad argument #2: number expected, got "..type(b),2)
+		elseif a==math.huge or a~=a or a==1/0 then
+			error("bad argument #1: interval is empty",2)
+		elseif b==math.huge or b~=b or b==1/0 or b<a then
+			error("bad argument #2: interval is empty",2)
+		end
+		return a+rnextInt(b+1-a)
+	end
+end
+
 function api.init() -- Called after this file is loaded! Important. Else api.x is not defined
 	api.env = {
 		_VERSION = "Luaj-jse 2.0.3",
@@ -1176,7 +1228,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 		pcall = pcall,
 		xpcall = xpcall,
 		loadstring = api.loadstring,
-		math = tablecopy(math),
+		math = api.math,
 		string = tablecopy(string),
 		table = tablecopy(table),
 		coroutine = tablecopy(coroutine),

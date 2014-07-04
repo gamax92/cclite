@@ -245,6 +245,7 @@ Emulator = {
 		lastAlarm = 0,
 		timers = {},
 		alarms = {},
+		sockets = {},
 	},
 	eventQueue = {},
 	lastUpdateClock = os.clock(),
@@ -303,6 +304,15 @@ function Emulator:start()
 end
 
 function Emulator:stop(reboot)
+	for k,v in pairs(self.actions.sockets) do
+		if v.volitile then
+			if v.onClose then
+				v.onClose()
+			else
+				k:close()
+			end
+		end
+	end
 	self.proc = nil
 	self.running = false
 	self.reboot = reboot
@@ -316,6 +326,7 @@ function Emulator:stop(reboot)
 	self.actions.lastAlarm = 0
 	self.actions.timers = {}
 	self.actions.alarms = {}
+	self.actions.sockets = {}
 	self.eventQueue = {}
 end
 
@@ -582,6 +593,50 @@ function Emulator:update()
 		end
 	end
 	
+	local sclose={}
+	for k,v in pairs(self.actions.sockets) do
+		if v.server then
+			local cl=k:accept()
+			if cl then
+				v.onAccept(cl)
+			end
+		else
+			local s,e=k:receive(0)
+			if e and e~="timeout" then
+				sclose[k]=true
+				if v.onClose then
+					v.onClose()
+				else
+					k:close()
+				end
+			else
+				local mode=v.recMode or "*l"
+				if type(mode)=="number" then
+					local s,e=k:receive(mode)
+					if s and s~="" then
+						v.onRecv(s)
+					end
+				else
+					local s,e,r=k:receive("*a")
+					if e=="timeout" and r~="" then
+						if mode=="*a" then
+							v.onRecv(r)
+						else
+							v.buffer=(v.buffer or "")..r
+							while v.buffer:match("[\r\n]") do
+								v.onRecv(v.buffer:match("^[^\r\n]*"))
+								v.buffer=v.buffer:gsub("^[^\r\n]*[\r\n]+","")
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	for k,v in pairs(sclose) do
+		self.actions.sockets[k]=nil
+	end
+	
 	-- Messages
 	for i = 1,#messageCache do
 		Screen:message(messageCache[i])
@@ -624,9 +679,6 @@ end
 
 -- Use a more assumptive and non automatic screen clearing version of love.run
 function love.run()
-	math.randomseed(os.time())
-	math.random() math.random()
-
 	love.load(arg)
 
 	-- Main loop time.

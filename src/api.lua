@@ -1167,7 +1167,7 @@ function rnextInt(n)
 	repeat
 		local bits=tonumber(rnext(31))
 		val=bits%n
-	until val+(n-1)<bits
+	until bits-val+(n-1)>=0
 	return val
 end
 api.math=tablecopy(math)
@@ -1182,7 +1182,15 @@ function api.math.random(a,b)
 	if b==nil then
 		if a==nil then
 			local n=tonumber((rnext(26)*(2^27))+rnext(27))/2^53
-			return math.floor(n*10000000+0.5)/10000000
+			if n==1 or n==0 then
+				return n
+			end
+			local c=1
+			while n<0.1 do
+				n=n*10
+				c=c*0.1
+			end
+			return (math.floor(n*10000000+0.5)/10000000)*c
 		else
 			if type(a)~="number" then
 				error("bad argument #1: number expected, got "..type(a),2)
@@ -1203,6 +1211,9 @@ function api.math.random(a,b)
 		end
 		return a+rnextInt(b+1-a)
 	end
+end
+function api.math.trunc(num)
+	
 end
 
 function api.init() -- Called after this file is loaded! Important. Else api.x is not defined

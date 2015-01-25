@@ -496,16 +496,21 @@ end
 
 -- Install the lua part of the HTTP api (if enabled)
 if http then
+    local nativeHTTPRequest = http.request
+
     local function wrapRequest( _url, _post, _headers )
-        http.request( _url, _post, _headers )
-        while true do
-            local event, param1, param2 = os.pullEvent()
-            if event == "http_success" and param1 == _url then
-                return param2
-            elseif event == "http_failure" and param1 == _url then
-                return nil
+        local ok, err = nativeHTTPRequest( _url, _post, _headers )
+        if ok then
+            while true do
+                local event, param1, param2 = os.pullEvent()
+                if event == "http_success" and param1 == _url then
+                    return param2
+                elseif event == "http_failure" and param1 == _url then
+                    return nil, param2
+                end
             end
-        end        
+        end
+        return nil, err
     end
     
     http.get = function( _url, _headers )
@@ -514,6 +519,14 @@ if http then
 
     http.post = function( _url, _post, _headers )
         return wrapRequest( _url, _post or "", _headers )
+    end
+
+    http.request = function( _url, _post, _headers )
+        local ok, err = nativeHTTPRequest( _url, _post, _headers )
+        if not ok then
+            os.queueEvent( "http_failure", _url, err )
+        end
+        return ok, err
     end
 end
 

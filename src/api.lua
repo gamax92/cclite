@@ -509,6 +509,19 @@ end
 
 if _conf.enableAPI_http then
 	api.http = {}
+	function api.http.checkURL(sUrl)
+		if type(sUrl) ~= "string" then
+			error("Expected string",2)
+		end
+		local goodUrl = string_trim(sUrl)
+		if goodUrl:sub(1,4) == "ftp:" or goodUrl:sub(1,5) == "file:" or goodUrl:sub(1,7) == "mailto:" then
+			return false, "URL not http"
+		end
+		if goodUrl:sub(1,5) ~= "http:" and goodUrl:sub(1,6) ~= "https:" then
+			return false, "URL malformed"
+		end
+		return true
+	end
 	function api.http.request(sUrl, sParams)
 		if type(sUrl) ~= "string" then
 			error("String expected" .. (sUrl == nil and ", got nil" or ""),2)
@@ -1331,6 +1344,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 	}
 	if _conf.enableAPI_http then
 		api.env.http = {
+			checkURL = api.http.checkURL,
 			request = api.http.request,
 		}
 	end
@@ -1347,6 +1361,7 @@ function api.init() -- Called after this file is loaded! Important. Else api.x i
 	end
 	api.env.rs = api.env.redstone
 	api.env.math.mod = nil
+	api.env.math.trunc = nil
 	api.env.string.gfind = nil
 	api.env._G = api.env
 end

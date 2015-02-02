@@ -1,0 +1,15 @@
+This fork of the CCLite emulator provides an api called cclite, that allows access to various extended features in the CCLite emulator.
+ 
+This feature can be turned on or off by changing the configuration setting enableAPI_cclite
+>  cclite.traceback()
+ A copy of debug.traceback(), useful if you need to track down code flow.
+>  cclite.log( msg )
+ Logs anything given to the Love2D console.
+>  cclite.message(string sMessage)
+ Spawns a message on the display.
+>  cclite.peripheralAttach(string sSide, string sType)
+ Attaches a virtual peripheral of type sType to side sSide. Throws an error if the specified type does not exist or if something is already attached to the specified side.
+>  cclite.peripheralDetach(string sSide)
+ Removes a virtual peripheral from side sSide. Throws an error if there is no peripheral attached to the specified side.
+>  cclite.call(string sSide, string sMethod, ...)
+ Calls a function from the api the virtual peripheral provides. Please note that this api set is different from the one usable from peripheral.call().

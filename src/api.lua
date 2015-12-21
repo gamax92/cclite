@@ -629,6 +629,11 @@ if _conf.enableAPI_http then
 
 		http.open(method, goodUrl, true)
 
+		if method == "POST" then
+			http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+			http.setRequestHeader("Content-Length", sParams:len())
+		end
+
 		if type(tHeaders) == "table" then
 			for k, v in pairs(tHeaders) do
 				if type(k) == "string" and type(v) == "string" then
@@ -638,11 +643,6 @@ if _conf.enableAPI_http then
 					end
 				end
 			end
-		end
-
-		if method == "POST" then
-			http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-			http.setRequestHeader("Content-Length", sParams:len())
 		end
 
 		http.onReadyStateChange = function()

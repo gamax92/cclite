@@ -27,7 +27,7 @@ You can try LuaRocks to see if it has LuaSec, I did it manually
 
 For HTTPS support, you'll need to grab:
 
-From LuaSec: [Binaries](http://50.116.63.25/public/LuaSec-Binaries/), [Lua Code](http://www.inf.puc-rio.br/~brunoos/luasec/download/luasec-0.4.1.tar.gz):
+From LuaSec: [Binaries](http://50.116.63.25/public/LuaSec-Binaries/), [Lua Code](https://github.com/brunoos/luasec/tree/master/src):
 
   * ssl.dll -> ssl.dll
   

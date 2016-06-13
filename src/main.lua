@@ -430,23 +430,25 @@ function love.mousepressed(x, y, button)
 		else
 			local termMouseX = math_bind(math.floor((x - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
 			local termMouseY = math_bind(math.floor((y - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
-
-			if button == "l" or button == "m" or button == "r" then
-				Computer.mouse.isPressed = true
-				Computer.mouse.lastTermX = termMouseX
-				Computer.mouse.lastTermY = termMouseY
-				if button == "l" then button = 1
-				elseif button == "m" then button = 3
-				elseif button == "r" then button = 2
-				end
-				table.insert(Computer.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
-			elseif button == "wu" then -- Scroll up
-				table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseY})
-			elseif button == "wd" then -- Scroll down
-				table.insert(Computer.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
-			end
+			
+			Computer.mouse.isPressed = true
+			Computer.mouse.lastTermX = termMouseX
+			Computer.mouse.lastTermY = termMouseY
+			table.insert(Computer.eventQueue, {"mouse_click", button, termMouseX, termMouseY})
 		end
 	end
+end
+
+function love.wheelmoved( x, y )
+  local tx, ty = love.mouse.getPosition()
+  local termMouseX = math_bind(math.floor((tx - _conf.terminal_guiScale) / Screen.pixelWidth) + 1,1,_conf.terminal_width)
+  local termMouseY = math_bind(math.floor((ty - _conf.terminal_guiScale) / Screen.pixelHeight) + 1,1,_conf.terminal_height)
+  
+  if y > 0 then
+    table.insert(Computer.eventQueue, {"mouse_scroll", -1, termMouseX, termMouseY})
+  elseif y < 0 then
+    table.insert(Computer.eventQueue, {"mouse_scroll", 1, termMouseX, termMouseY})
+  end
 end
 
 function love.textinput(unicode)
@@ -653,7 +655,7 @@ function Computer:update()
 			self.mouse.lastTermX = termMouseX
 			self.mouse.lastTermY = termMouseY
 
-			table.insert (self.eventQueue, {"mouse_drag", love.mouse.isDown("r") and 2 or 1, termMouseX, termMouseY})
+			table.insert (self.eventQueue, {"mouse_drag", love.mouse.isDown(2) and 2 or 1, termMouseX, termMouseY})
 		end
 	end
 
